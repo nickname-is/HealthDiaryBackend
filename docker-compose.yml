@@ -20,6 +20,7 @@ services:
 
   db:
     image: postgres:15.4
+    container_name: healthdiarydb
     environment:
       POSTGRES_DB: healthdiary
       POSTGRES_USER: postgres
