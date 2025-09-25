@@ -7,11 +7,11 @@ services:
       context: ./
     image: healthdiarybackend
     container_name: healthdiarybackend
+    environment:
+      APP_CONFIG__DB__URL: postgresql+asyncpg://postgres:root@db:5432/healthdiary
     command: python app/main.py
     ports:
       - "5050:8000"
-    env_file:
-      - ./app/.env
     volumes:
       - .:/healthdiarybackend
     depends_on:
