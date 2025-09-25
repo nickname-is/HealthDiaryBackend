@@ -2,7 +2,10 @@ version: "3.9"
 
 services:
   backend:
-    build: .
+    build:
+      dockerfile: ./Dockerfile
+      context: ./
+    image: healthdiarybackend
     container_name: healthdiarybackend
     command: python app/main.py
     ports:
