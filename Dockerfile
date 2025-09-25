@@ -5,6 +5,8 @@ ENV PYTHONDONTWRITEBYTECODE=1
 
 WORKDIR /healthdiarybackend
 
+ENV PYTHONPATH=/healthdiarybackend/app:$PYTHONPATH
+
 RUN pip install --upgrade pip wheel
 
 COPY requirements.txt ./requirements.txt
