@@ -1,6 +1,6 @@
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from enum import Enum as PythonEnum
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 from .base import Base
 from .mixins.time_mixin import TimeMixin
@@ -11,6 +11,9 @@ from sqlalchemy import (
     Float,
     String,
 )
+
+if TYPE_CHECKING:
+    from .refresh_token import RefreshToken
 
 
 class GenderEnum(PythonEnum):
@@ -31,3 +34,7 @@ class User(Base, TimeMixin):
     weight: Mapped[Optional[float]] = mapped_column(Float)
     gender: Mapped[Optional[GenderEnum]] = mapped_column(Enum(GenderEnum))
     avatar: Mapped[Optional[str]] = mapped_column(String(512))
+
+    refresh_tokens: Mapped[list["RefreshToken"]] = relationship(
+        "RefreshToken", back_populates="user", cascade="all, delete-orphan"
+    )
