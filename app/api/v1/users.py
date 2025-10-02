@@ -9,6 +9,7 @@ from fastapi import (
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
+from api.deps import CurrentUser
 from core.models import db_helper
 from core.schemas.user import (
     UserRead,
@@ -30,6 +31,11 @@ async def read_users(
     ],
 ):
     return await users_crud.get_all_users(session)
+
+
+@router.get("/me", response_model=UserRead)
+async def read_user_me(current_user: CurrentUser):
+    return current_user
 
 
 @router.get("/{user_id}", response_model=UserRead)
