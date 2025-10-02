@@ -9,6 +9,7 @@ services:
     container_name: healthdiarybackend
     environment:
       APP_CONFIG__DB__URL: postgresql+asyncpg://postgres:root@db:5432/healthdiary
+      APP_CONFIG__SECRET_KEY: LozsRd_f1vyR5mEUXaRTOUfe7Nwzv9gZeT_JZuPVJCo
     command: python app/main.py
     ports:
       - "5050:8000"

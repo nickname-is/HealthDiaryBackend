@@ -45,6 +45,8 @@ class Settings(BaseSettings):
     db: DatabaseConfig
     api: ApiPrefix = ApiPrefix()
 
+    SECRET_KEY: str
+
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     ACCESS_TOKEN_KEY: str = "access_token"
 
