@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.models import User
 from core.schemas.user import UserCreate, UserUpdate
+from core.security import get_hash_password, verify_password
 
 
 async def get_all_users(session: AsyncSession,) -> Sequence[User]:
@@ -29,6 +30,8 @@ async def get_user_by_email(
 
 async def create_user(session: AsyncSession, user_create: UserCreate,) -> User:
     user = User(**user_create.model_dump())
+    user.password = get_hash_password(user_create.password)
+
     session.add(user)
     await session.commit()
     await session.refresh(user)
