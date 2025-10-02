@@ -57,3 +57,17 @@ async def delete_user(session: AsyncSession, user_id: int) -> Optional[User]:
     await session.delete(user)
     await session.commit()
     return user
+
+
+async def authenticate(
+        session: AsyncSession,
+        email: str,
+        password: str
+) -> User | None:
+    user = await get_user_by_email(session=session, email=email)
+    if not user:
+        return None
+    if not verify_password(password, user.password):
+        return None
+
+    return user
