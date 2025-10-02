@@ -12,6 +12,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
+from api.deps import CurrentUser
 from core.config import settings
 from core.models import db_helper
 from core.schemas.token import Token
@@ -76,4 +77,17 @@ async def logout(
     await refresh_crud.delete_token(session, refresh_token)
 
     return {"detail": "Logged out successfully"}
+
+
+@router.post("/logout/all")
+async def logout_all(
+    session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
+    current_user: CurrentUser,
+) -> dict:
+    """
+    Выход со всех устройств: удаляет все refresh токены текущего пользователя.
+    """
+    await refresh_crud.delete_all_by_user(session=session, user_id=current_user.id)
+
+    return {"detail": f"Logged out from all devices for user {current_user.email}"}
 
