@@ -78,15 +78,24 @@ async def update_user(
     return await users_crud.update_user(session, db_user, user_in)
 
 
-@router.delete("/{user_id}", response_model=UserRead)
+@router.delete("/{user_id}")
 async def delete_user(
     user_id: int,
+    current_user: CurrentUser,
     session: Annotated[
         AsyncSession,
         Depends(db_helper.session_getter),
     ],
 ):
+    # Проверяем права: пользователь может удалить только себя
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to delete this user"
+        )
+
     user = await users_crud.delete_user(session, user_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-    return user
+
+    return {"detail": "User deleted"}
