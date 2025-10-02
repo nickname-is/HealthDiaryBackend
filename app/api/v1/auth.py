@@ -61,3 +61,19 @@ async def login_user(
 
     return token
 
+
+@router.post("/logout")
+async def logout(
+    session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
+    refresh_token: str = Form(...),
+) -> dict:
+    """Выход: удаление одного refresh токена"""
+    refresh_token = await refresh_crud.get_by_token(session, token=refresh_token)
+
+    if not refresh_token:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Token not found")
+
+    await refresh_crud.delete_token(session, refresh_token)
+
+    return {"detail": "Logged out successfully"}
+
