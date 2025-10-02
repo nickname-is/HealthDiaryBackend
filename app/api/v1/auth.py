@@ -91,3 +91,45 @@ async def logout_all(
 
     return {"detail": f"Logged out from all devices for user {current_user.email}"}
 
+
+@router.post("/refresh", response_model=Token)
+async def refresh_tokens(
+    session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
+    refresh_token: str = Form(...),
+    fingerprint: Optional[str] = Form(None),
+) -> Token:
+    """Обновление access/refresh пары"""
+    refresh_token = await refresh_crud.get_by_token(session, token=refresh_token)
+
+    if not refresh_token:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
+
+    # Удаляем старый refresh токен
+    await refresh_crud.delete_token(session, refresh_token)
+
+    # Проверяем срок жизни
+    if refresh_token.expire_at < datetime.now(timezone.utc).replace(tzinfo=None):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token expired")
+
+    # Проверяем fingerprint (если храним)
+    if fingerprint and refresh_token.fingerprint and fingerprint != refresh_token.fingerprint:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Fingerprint mismatch")
+
+    # Создаём новую пару
+    new_access = create_access_token(subject=refresh_token.user_id)
+    new_refresh = create_refresh_token()
+    expire_at = (datetime.now(timezone.utc).replace(tzinfo=None) +
+                 timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES))
+
+    await refresh_crud.create_token(
+        session=session,
+        user_id=refresh_token.user_id,
+        token=new_refresh,
+        expire_at=expire_at,
+        fingerprint=fingerprint,
+    )
+
+    return Token(
+        access_token=new_access,
+        refresh_token=new_refresh,
+    )
