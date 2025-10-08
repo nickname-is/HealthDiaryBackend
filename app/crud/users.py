@@ -40,6 +40,10 @@ async def create_user(session: AsyncSession, user_create: UserCreate,) -> User:
 
 async def update_user(session: AsyncSession, user: User, user_update: UserUpdate) -> User:
     update_data = user_update.model_dump(exclude_unset=True)
+
+    if "password" in update_data:
+        update_data["password"] = get_hash_password(update_data["password"])
+
     for field, value in update_data.items():
         setattr(user, field, value)
 
