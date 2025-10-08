@@ -74,11 +74,19 @@ async def create_user(
 async def update_user(
     user_id: int,
     user_in: UserUpdate,
+    current_user: CurrentUser,
     session: Annotated[
         AsyncSession,
         Depends(db_helper.session_getter),
     ],
 ):
+    # Проверяем права: пользователь может изменять данные только о себе
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to update this user"
+        )
+
     db_user = await users_crud.get_user_by_id(session, user_id)
     if not db_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
