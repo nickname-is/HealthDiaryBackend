@@ -5,6 +5,7 @@ from fastapi import (
     APIRouter,
     Depends,
     HTTPException,
+    Request,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
@@ -16,12 +17,16 @@ from core.schemas.user import (
     UserCreate,
     UserUpdate,
 )
+
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
 from crud import users as users_crud
 
 
 log = logging.getLogger(__name__)
 router = APIRouter(tags=["Users"])
-
+limiter = Limiter(key_func=get_remote_address)
 
 @router.get("/", response_model=list[UserRead])
 async def read_users(
@@ -53,7 +58,9 @@ async def read_user(
 
 
 @router.post("/", response_model=UserRead, status_code=status.HTTP_201_CREATED)
+@limiter.limit("5/minute")
 async def create_user(
+    request: Request,
     user_in: UserCreate, session: Annotated[
         AsyncSession,
         Depends(db_helper.session_getter),
