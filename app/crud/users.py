@@ -3,6 +3,10 @@ from typing import Sequence, Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from fastapi import HTTPException
+from sqlalchemy.orm import InstrumentedAttribute
+from starlette import status
+
 from core.models import User
 from core.schemas.user import UserCreate, UserUpdate
 from core.security import get_hash_password, verify_password
@@ -28,7 +32,25 @@ async def get_user_by_email(
     return result
 
 
+async def check_unique(
+        session: AsyncSession,
+        column: InstrumentedAttribute,
+        value: str,
+        user_id: int | None = None
+) -> None:
+    statement = select(User).where(value == column)
+    existing = await session.scalar(statement)
+    if existing and (user_id is None or existing.id != user_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"User with this {column.key} already exists."
+        )
+
+
 async def create_user(session: AsyncSession, user_create: UserCreate,) -> User:
+    await check_unique(session, User.email, user_create.email)
+    await check_unique(session, User.nickname, user_create.nickname)
+
     user = User(**user_create.model_dump())
     user.password = get_hash_password(user_create.password)
 
@@ -40,6 +62,11 @@ async def create_user(session: AsyncSession, user_create: UserCreate,) -> User:
 
 async def update_user(session: AsyncSession, user: User, user_update: UserUpdate) -> User:
     update_data = user_update.model_dump(exclude_unset=True)
+
+    if "email" in update_data:
+        await check_unique(session, User.email, update_data["email"], user.id)
+    if "nickname" in update_data:
+        await check_unique(session, User.nickname, update_data["nickname"], user.id)
 
     if "password" in update_data:
         update_data["password"] = get_hash_password(update_data["password"])
