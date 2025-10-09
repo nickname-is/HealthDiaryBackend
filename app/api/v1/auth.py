@@ -15,7 +15,7 @@ from starlette import status
 from api.deps import CurrentUser
 from core.config import settings
 from core.models import db_helper
-from core.schemas.token import Token
+from core.schemas.token import Token, LogoutRequest, RefreshRequest
 from crud import users as users_crud
 from crud import refresh_tokens as refresh_crud
 from core.security import create_access_token, create_refresh_token
@@ -65,11 +65,11 @@ async def login_user(
 
 @router.post("/logout")
 async def logout(
+    logout_request: LogoutRequest,
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
-    refresh_token: str = Form(...),
 ) -> dict:
     """Выход: удаление одного refresh токена"""
-    refresh_token = await refresh_crud.get_by_token(session, token=refresh_token)
+    refresh_token = await refresh_crud.get_by_token(session, token=logout_request.refresh_token)
 
     if not refresh_token:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Token not found")
@@ -94,12 +94,12 @@ async def logout_all(
 
 @router.post("/refresh", response_model=Token)
 async def refresh_tokens(
+    refresh_request: RefreshRequest,
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
-    refresh_token: str = Form(...),
-    fingerprint: Optional[str] = Form(None),
 ) -> Token:
     """Обновление access/refresh пары"""
-    refresh_token = await refresh_crud.get_by_token(session, token=refresh_token)
+    refresh_token = await refresh_crud.get_by_token(session, token=refresh_request.refresh_token)
+    fingerprint = refresh_request.fingerprint
 
     if not refresh_token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
