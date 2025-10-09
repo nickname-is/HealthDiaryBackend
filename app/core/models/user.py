@@ -10,6 +10,7 @@ from sqlalchemy import (
     Enum,
     Float,
     String,
+    CheckConstraint,
 )
 
 if TYPE_CHECKING:
@@ -37,4 +38,9 @@ class User(Base, TimeMixin):
 
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship(
         "RefreshToken", back_populates="user", cascade="all, delete-orphan"
+    )
+
+    __table_args__ = (
+        CheckConstraint('height > 0', name='check_positive_height'),
+        CheckConstraint('weight > 0', name='check_positive_weight'),
     )

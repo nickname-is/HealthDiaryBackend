@@ -9,6 +9,7 @@ from sqlalchemy import (
     Enum,
     Float,
     String,
+    CheckConstraint,
 )
 
 
@@ -51,3 +52,7 @@ class Drug(Base, TimeMixin):
     dosage: Mapped[float] = mapped_column(Float, nullable=False)
     dosage_unit: Mapped[DosageUnitEnum] = mapped_column(Enum(DosageUnitEnum), nullable=False)
     dosage_type: Mapped[DosageTypeEnum] = mapped_column(Enum(DosageTypeEnum), nullable=False)
+
+    __table_args__ = (
+        CheckConstraint('dosage > 0', name='check_positive_dosage'),
+    )

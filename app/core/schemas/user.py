@@ -1,8 +1,12 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr
-from pydantic import ConfigDict
+from pydantic import (
+    BaseModel,
+    EmailStr,
+    ConfigDict,
+    PositiveFloat,
+)
 
 from core.models.user import GenderEnum
 
@@ -12,8 +16,8 @@ class UserBase(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     email: EmailStr
-    height: Optional[float] = None
-    weight: Optional[float] = None
+    height: Optional[PositiveFloat] = None
+    weight: Optional[PositiveFloat] = None
     gender: Optional[GenderEnum] = None
     avatar: Optional[str] = None
 
@@ -28,8 +32,8 @@ class UserUpdate(BaseModel):
     last_name: Optional[str] = None
     email: Optional[EmailStr] = None
     password: Optional[str] = None
-    height: Optional[float] = None
-    weight: Optional[float] = None
+    height: Optional[PositiveFloat] = None
+    weight: Optional[PositiveFloat] = None
     gender: Optional[GenderEnum] = None
     avatar: Optional[str] = None
 
