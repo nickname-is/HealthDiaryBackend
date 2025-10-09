@@ -42,7 +42,7 @@ async def check_unique(
     existing = await session.scalar(statement)
     if existing and (user_id is None or existing.id != user_id):
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_409_CONFLICT,
             detail=f"User with this {column.key} already exists."
         )
 
