@@ -14,13 +14,33 @@ from sqlalchemy import (
 
 class DosageUnitEnum(PythonEnum):
     MILLIGRAM = "мг"
+    GRAM = "г"
     MILLILITER = "мл"
+    MICROGRAM = "мкг"
+    UNIT = "МЕ"  # Международная единица
+    PIECE = "шт"
+    DROP = "капля"
+    SPRAY = "распыление"
+    TABLESPOON = "ст.л."
+    TEASPOON = "ч.л."
 
 
 class DosageTypeEnum(PythonEnum):
     CAPSULE = "Капсула"
     PILL = "Таблетка"
     POWDER = "Порошок"
+    AMPOULE = "Ампула"
+    SOLUTION = "Раствор"
+    SUSPENSION = "Суспензия"
+    CREAM = "Крем"
+    OINTMENT = "Мазь"
+    GEL = "Гель"
+    SUPPOSITORY = "Суппозитория"
+    SPRAY = "Спрей"
+    DROP = "Капли"
+    FOAM = "Пена"
+    PATCH = "Пластырь"
+    INHALER = "Ингалятор"
 
 
 class Drug(Base, TimeMixin):
@@ -28,6 +48,6 @@ class Drug(Base, TimeMixin):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    dosage: Mapped[int] = mapped_column(Float, nullable=False)
+    dosage: Mapped[float] = mapped_column(Float, nullable=False)
     dosage_unit: Mapped[DosageUnitEnum] = mapped_column(Enum(DosageUnitEnum), nullable=False)
     dosage_type: Mapped[DosageTypeEnum] = mapped_column(Enum(DosageTypeEnum), nullable=False)
