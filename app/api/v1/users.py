@@ -43,7 +43,7 @@ async def read_user_me(current_user: CurrentUser):
     return current_user
 
 
-@router.get("/{user_id}", response_model=UserRead)
+@router.get("/{user_id}", response_model=UserRead, response_model_exclude={"email"})
 async def read_user(
     user_id: int,
     session: Annotated[
@@ -61,7 +61,8 @@ async def read_user(
 @limiter.limit("5/minute")
 async def create_user(
     request: Request,
-    user_in: UserCreate, session: Annotated[
+    user_in: UserCreate,
+    session: Annotated[
         AsyncSession,
         Depends(db_helper.session_getter),
     ],
