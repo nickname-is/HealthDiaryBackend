@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Email title{% endblock %}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #1f1f1f; color: #ffffff; font-family: 'Inter', sans-serif; line-height: 1.4;">
+    <center class="wrapper" style="width: 100%; table-layout: fixed; background-color: #1f1f1f; padding: 35px 0;">
+        <table class="container" role="presentation" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #1f1f1f; padding: 0 20px; border-spacing: 0;">
+            <tr>
+                <td>
+                    {% block main %}Email content{% endblock %}
+                </td>
+            </tr>
+            <tr>
+                <td class="footer" style="font-size: 26px; text-align: center; padding-top: 35px; border-top: 2px solid #4b4b4b; color: #ffffff;">
+                    {% block footer %}
+                    Health Diary,<br>&copy; 2025.
+                    {% endblock %}
+                </td>
+            </tr>
+        </table>
+    </center>
+</body>
+</html>
