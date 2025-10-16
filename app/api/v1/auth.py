@@ -111,8 +111,8 @@ async def refresh_tokens(
     if refresh_token.expire_at < datetime.now(timezone.utc).replace(tzinfo=None):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token expired")
 
-    # Проверяем fingerprint (если храним)
-    if fingerprint and refresh_token.fingerprint and fingerprint != refresh_token.fingerprint:
+    # Проверяем fingerprint
+    if fingerprint != refresh_token.fingerprint:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Fingerprint mismatch")
 
     # Создаём новую пару
