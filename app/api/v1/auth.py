@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime, timedelta, timezone
 from typing import Annotated, Optional
+import random
 
 from fastapi import (
     APIRouter,
@@ -16,10 +17,14 @@ from api.deps import CurrentUser
 from core.config import settings
 from core.models import db_helper
 from core.schemas.token import Token, LogoutRequest, RefreshRequest
-from crud import users as users_crud
-from crud import refresh_tokens as refresh_crud
+from core.schemas.user import UserRead
+from core.schemas.email_verification import EmailVerification
 from core.security import create_access_token, create_refresh_token
 
+from crud import users as users_crud
+from crud import refresh_tokens as refresh_crud
+from crud import email_verifications as verifications_crud
+from mailing.send_email import send_otp_email
 
 log = logging.getLogger(__name__)
 router = APIRouter(tags=["Auth"])
@@ -27,9 +32,9 @@ router = APIRouter(tags=["Auth"])
 
 @router.post("/login", response_model=Token)
 async def login_user(
-        session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
-        form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-        fingerprint: Optional[str] = Form(None),
+    session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    fingerprint: Optional[str] = Form(None),
 ) -> Token:
     user = await users_crud.authenticate(
         session=session,
@@ -133,3 +138,77 @@ async def refresh_tokens(
         access_token=new_access,
         refresh_token=new_refresh,
     )
+
+
+@router.post("/request-verify")
+async def request_verify(
+    current_user: CurrentUser,
+    session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
+):
+    if current_user.is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Email is already verified"
+        )
+
+    verification = await verifications_crud.get_email_verification(
+        session=session,
+        user_id=current_user.id
+    )
+
+    if verification:
+        await verifications_crud.delete_email_verification(
+            session=session,
+            user_id=current_user.id
+        )
+
+    code = f"{random.randint(0, 100000):06d}"
+
+    await send_otp_email(current_user.email, code)
+
+    await verifications_crud.create_email_verification(
+        session=session,
+        user_id=current_user.id,
+        code=code,
+        expire_at=(datetime.now(timezone.utc).replace(tzinfo=None) +
+                   timedelta(minutes=settings.OTP_CODE_EXPIRE_MINUTES))
+    )
+
+    return None
+
+
+@router.post("/verify", response_model=UserRead)
+async def verify(
+    email_verification: EmailVerification,
+    current_user: CurrentUser,
+    session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
+):
+    if current_user.is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Email is already verified"
+        )
+
+    verification = await verifications_crud.get_email_verification(
+        session=session,
+        user_id=current_user.id
+    )
+
+    if verification is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="The verification code does not exist")
+
+    if verification.created_at + timedelta(minutes=settings.OTP_CODE_EXPIRE_MINUTES) < datetime.now(timezone.utc):
+        await verifications_crud.delete_email_verification(session=session, user_id=current_user.id)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The code has expired")
+
+    if email_verification.otp_code != verification.code:
+        await verifications_crud.increase_attempts(session=session, user_id=current_user.id)
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The code is incorrect"
+        )
+
+    user = await users_crud.verify_user(session=session, user_id=current_user.id)
+
+    return user
