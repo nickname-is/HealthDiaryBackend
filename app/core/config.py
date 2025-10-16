@@ -1,6 +1,8 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import BaseModel, PostgresDsn
 
+import os
+
 
 class ApiV1Prefix(BaseModel):
     prefix: str = "/v1"
@@ -57,3 +59,8 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+if os.getenv("RUNNING_IN_DOCKER") == "1":
+    db_url = f"postgresql+asyncpg://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@db:5432/{os.getenv('POSTGRES_DB')}"
+    settings.db.url = db_url
