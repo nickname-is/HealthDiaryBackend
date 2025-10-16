@@ -53,6 +53,7 @@ async def create_user(session: AsyncSession, user_create: UserCreate,) -> User:
 
     user = User(**user_create.model_dump())
     user.password = get_hash_password(user_create.password)
+    user.is_verified = False
 
     session.add(user)
     await session.commit()
@@ -87,6 +88,20 @@ async def delete_user(session: AsyncSession, user_id: int) -> Optional[User]:
 
     await session.delete(user)
     await session.commit()
+    return user
+
+
+async def verify_user(session: AsyncSession, user_id: int) -> Optional[User]:
+    user = await get_user_by_id(session, user_id)
+    if user is None:
+        return None
+
+    user.is_verified = True
+
+    session.add(user)
+    await session.commit()
+    await session.refresh(user)
+
     return user
 
 
