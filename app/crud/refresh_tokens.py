@@ -27,17 +27,17 @@ async def create_token(
 
 
 async def get_by_token(session: AsyncSession, token: str) -> Optional[RefreshToken]:
-    result = await session.execute(
-        select(RefreshToken).where(token == RefreshToken.token)
-    )
-    return result.scalars().first()
+    statement = select(RefreshToken).where(token == RefreshToken.token)
+    result = await session.scalar(statement)
+
+    return result
 
 
 async def get_by_user(session: AsyncSession, user_id: int) -> Sequence[RefreshToken]:
-    result = await session.execute(
-        select(RefreshToken).where(user_id == RefreshToken.user_id)
-    )
-    return result.scalars().all()
+    statement = select(RefreshToken).where(user_id == RefreshToken.user_id)
+    result = await session.scalars(statement)
+
+    return result.all()
 
 
 async def delete_token(session: AsyncSession, token: RefreshToken) -> None:
