@@ -7,12 +7,13 @@ services:
       context: ./
     image: healthdiarybackend
     container_name: healthdiarybackend
+    env_file:
+      - app/.env
     environment:
-      APP_CONFIG__DB__URL: postgresql+asyncpg://postgres:root@db:5432/healthdiary
-      APP_CONFIG__SECRET_KEY: LozsRd_f1vyR5mEUXaRTOUfe7Nwzv9gZeT_JZuPVJCo
+      - RUNNING_IN_DOCKER=1
     command: python app/main.py
     ports:
-      - "5050:8000"
+      - "80:8000"
     volumes:
       - .:/healthdiarybackend
     depends_on:
@@ -22,10 +23,9 @@ services:
   db:
     image: postgres:15.4
     container_name: healthdiarydb
+    env_file:
+      - app/.env
     environment:
-      POSTGRES_DB: healthdiary
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: root
       PGDATA: /var/lib/postgresql/data
     ports:
       - "5432:5432"
