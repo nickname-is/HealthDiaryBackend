@@ -11,10 +11,13 @@ from sqlalchemy import (
     Float,
     String,
     CheckConstraint,
+    Boolean,
+    false,
 )
 
 if TYPE_CHECKING:
     from .refresh_token import RefreshToken
+    from .email_verification import EmailVerification
 
 
 class GenderEnum(PythonEnum):
@@ -35,9 +38,13 @@ class User(Base, TimeMixin):
     weight: Mapped[Optional[float]] = mapped_column(Float)
     gender: Mapped[Optional[GenderEnum]] = mapped_column(Enum(GenderEnum))
     avatar: Mapped[Optional[str]] = mapped_column(String(512))
+    is_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=false())
 
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship(
         "RefreshToken", back_populates="user", cascade="all, delete-orphan"
+    )
+    email_verification: Mapped["EmailVerification"] = relationship(
+        "EmailVerification", back_populates="user", cascade="all, delete-orphan", uselist=False
     )
 
     __table_args__ = (

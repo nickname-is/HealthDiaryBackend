@@ -47,5 +47,6 @@ class UserRead(UserBase):
     )
 
     id: int
+    is_verified: bool
     created_at: datetime
     edited_at: datetime
