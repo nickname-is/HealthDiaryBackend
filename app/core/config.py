@@ -41,7 +41,8 @@ class Settings(BaseSettings):
         env_file=".env",
         case_sensitive=False,
         env_nested_delimiter="__",
-        env_prefix="APP_CONFIG__"
+        env_prefix="APP_CONFIG__",
+        extra="ignore"
     )
 
     run: RunConfig = RunConfig()
@@ -56,6 +57,8 @@ class Settings(BaseSettings):
     # 60 minutes * 24 hours * 60 days = 60 days
     REFRESH_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 60
     REFRESH_TOKEN_KEY: str = "refresh_token"
+
+    OTP_CODE_EXPIRE_MINUTES: int = 10
 
 
 settings = Settings()
