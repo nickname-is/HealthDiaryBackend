@@ -8,6 +8,7 @@ from fastapi import (
     Depends,
     HTTPException,
     Form,
+    Request,
 )
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -26,8 +27,13 @@ from crud import refresh_tokens as refresh_crud
 from crud import email_verifications as verifications_crud
 from mailing.send_email import send_otp_email
 
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
+
 log = logging.getLogger(__name__)
 router = APIRouter(tags=["Auth"])
+limiter = Limiter(key_func=get_remote_address)
 
 
 @router.post("/login", response_model=Token)
@@ -141,7 +147,9 @@ async def refresh_tokens(
 
 
 @router.post("/request-verify")
+@limiter.limit("1/minute")
 async def request_verify(
+    request: Request,
     current_user: CurrentUser,
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ):
@@ -197,7 +205,7 @@ async def verify(
     if verification is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="The verification code does not exist")
 
-    if verification.created_at + timedelta(minutes=settings.OTP_CODE_EXPIRE_MINUTES) < datetime.now(timezone.utc):
+    if verification.expire_at < datetime.now(timezone.utc).replace(tzinfo=None):
         await verifications_crud.delete_email_verification(session=session, user_id=current_user.id)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The code has expired")
 
