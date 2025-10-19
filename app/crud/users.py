@@ -1,5 +1,6 @@
 from typing import Sequence, Optional
 
+from pydantic import EmailStr
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -26,7 +27,7 @@ async def get_user_by_email(
         session: AsyncSession,
         email: str
 ) -> User | None:
-    statement = select(User).where(email == User.email)
+    statement = select(User).where(User.email == email)
     result = await session.scalar(statement)
 
     return result
@@ -35,10 +36,10 @@ async def get_user_by_email(
 async def check_unique(
         session: AsyncSession,
         column: InstrumentedAttribute,
-        value: str,
+        value: str | EmailStr,
         user_id: int | None = None
 ) -> None:
-    statement = select(User).where(value == column)
+    statement = select(User).where(column == value)
     existing = await session.scalar(statement)
     if existing and (user_id is None or existing.id != user_id):
         raise HTTPException(

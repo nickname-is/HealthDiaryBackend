@@ -12,7 +12,7 @@ from core.models import EmailVerification
 
 
 async def get_email_verification(session: AsyncSession, user_id: int) -> Optional[EmailVerification]:
-    statement = select(EmailVerification).where(user_id == EmailVerification.user_id)
+    statement = select(EmailVerification).where(EmailVerification.user_id == user_id)
     result = await session.scalar(statement)
 
     return result
@@ -38,7 +38,7 @@ async def create_email_verification(
 
 async def delete_email_verification(session: AsyncSession, user_id: int) -> None:
     await session.execute(
-        delete(EmailVerification).where(user_id == EmailVerification.user_id)
+        delete(EmailVerification).where(EmailVerification.user_id == user_id)
     )
     await session.commit()
 
