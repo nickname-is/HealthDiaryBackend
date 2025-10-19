@@ -1,4 +1,6 @@
-from sqlalchemy.orm import Mapped, mapped_column
+from typing import TYPE_CHECKING
+
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from enum import Enum as PythonEnum
 
 from .base import Base
@@ -11,6 +13,9 @@ from sqlalchemy import (
     String,
     CheckConstraint,
 )
+
+if TYPE_CHECKING:
+    from .task import Task
 
 
 class DosageUnitEnum(PythonEnum):
@@ -52,6 +57,12 @@ class Drug(Base, TimeMixin):
     dosage: Mapped[float] = mapped_column(Float, nullable=False)
     dosage_unit: Mapped[DosageUnitEnum] = mapped_column(Enum(DosageUnitEnum), nullable=False)
     dosage_type: Mapped[DosageTypeEnum] = mapped_column(Enum(DosageTypeEnum), nullable=False)
+
+    task: Mapped["Task"] = relationship(
+        "Task",
+        back_populates="drug",
+        uselist=False,
+    )
 
     __table_args__ = (
         CheckConstraint('dosage > 0', name='check_positive_dosage'),

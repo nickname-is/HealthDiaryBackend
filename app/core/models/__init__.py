@@ -5,6 +5,8 @@ __all__ = (
     "RefreshToken",
     "Drug",
     "EmailVerification",
+    "Task",
+    "TaskRepeat",
 )
 
 from .db_helper import db_helper
@@ -13,3 +15,5 @@ from .user import User
 from .refresh_token import RefreshToken
 from .drug import Drug
 from .email_verification import EmailVerification
+from .task import Task
+from .task_repeat import TaskRepeat
