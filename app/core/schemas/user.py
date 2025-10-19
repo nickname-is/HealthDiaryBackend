@@ -6,6 +6,7 @@ from pydantic import (
     EmailStr,
     ConfigDict,
     PositiveFloat,
+    model_validator,
 )
 
 from core.models.user import GenderEnum
@@ -39,6 +40,16 @@ class UserUpdate(BaseModel):
 
     # Строгая валидация
     model_config = ConfigDict(extra="forbid")
+
+    @model_validator(mode="before")
+    def forbid_null_values(cls, values):
+        forbid_null = ["nickname", "email", "password"]
+
+        for key, value in values.items():
+            if value is None and key in forbid_null:
+                raise ValueError(f"{key} cannot be null")
+
+        return values
 
 
 class UserRead(UserBase):
