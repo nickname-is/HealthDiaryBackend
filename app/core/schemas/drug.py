@@ -15,6 +15,18 @@ class DrugBase(BaseModel):
     dosage_type: DosageTypeEnum
 
 
+class DrugCreate(DrugBase):
+    pass
+
+
+class DrugRead(DrugBase):
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+    id: int
+
+
 class DrugUpdate(BaseModel):
     name: Optional[str] = None
     dosage: Optional[PositiveFloat] = None
