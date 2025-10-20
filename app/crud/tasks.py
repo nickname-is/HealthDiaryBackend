@@ -61,10 +61,10 @@ async def create_task(session: AsyncSession, user_id: int, task_in: TaskCreate) 
     return task
 
 
-async def get_task(session: AsyncSession, task_id: int, user_id: int) -> Optional[Task]:
+async def get_task(session: AsyncSession, task_guid: uuid.UUID, user_id: int) -> Optional[Task]:
     statement = (
         select(Task)
-        .where(Task.id == task_id, Task.user_id == user_id)
+        .where(Task.guid == task_guid, Task.user_id == user_id)
         .options(selectinload(Task.drug), selectinload(Task.repeat))
     )
     return await session.scalar(statement)
