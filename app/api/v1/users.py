@@ -10,8 +10,9 @@ from fastapi import (
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
-from api.deps import CurrentUser
+from api.deps import get_current_user
 from core.models import db_helper
+from core.models.user import User
 from core.schemas.user import (
     UserRead,
     UserCreate,
@@ -39,7 +40,7 @@ async def read_users(
 
 
 @router.get("/me", response_model=UserRead)
-async def read_user_me(current_user: CurrentUser):
+async def read_user_me(current_user: Annotated[User, Depends(get_current_user)]):
     return current_user
 
 
@@ -75,7 +76,7 @@ async def create_user(
 async def update_user(
     user_id: int,
     user_in: UserUpdate,
-    current_user: CurrentUser,
+    current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[
         AsyncSession,
         Depends(db_helper.session_getter),
@@ -97,7 +98,7 @@ async def update_user(
 @router.delete("/{user_id}")
 async def delete_user(
     user_id: int,
-    current_user: CurrentUser,
+    current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[
         AsyncSession,
         Depends(db_helper.session_getter),

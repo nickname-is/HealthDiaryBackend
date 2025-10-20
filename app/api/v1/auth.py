@@ -14,9 +14,9 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
-from api.deps import CurrentUser
+from api.deps import get_current_user
 from core.config import settings
-from core.models import db_helper
+from core.models import db_helper, User
 from core.schemas.token import Token, LogoutRequest, RefreshRequest
 from core.schemas.user import UserRead
 from core.schemas.email_verification import EmailVerification
@@ -93,7 +93,7 @@ async def logout(
 @router.post("/logout/all")
 async def logout_all(
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
-    current_user: CurrentUser,
+    current_user: Annotated[User, Depends(get_current_user)],
 ) -> dict:
     """
     Выход со всех устройств: удаляет все refresh токены текущего пользователя.
@@ -150,7 +150,7 @@ async def refresh_tokens(
 @limiter.limit("1/minute")
 async def request_verify(
     request: Request,
-    current_user: CurrentUser,
+    current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ):
     if current_user.is_verified:
@@ -188,7 +188,7 @@ async def request_verify(
 @router.post("/verify", response_model=UserRead)
 async def verify(
     email_verification: EmailVerification,
-    current_user: CurrentUser,
+    current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ):
     if current_user.is_verified:
