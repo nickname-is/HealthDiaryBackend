@@ -4,6 +4,7 @@ from core.config import settings
 
 from .users import router as users_router
 from .auth import router as auth_router
+from .tasks import router as tasks_router
 
 router = APIRouter(
     prefix=settings.api.v1.prefix,
@@ -14,5 +15,9 @@ router.include_router(
 )
 router.include_router(
     auth_router,
-    prefix=settings.api.v1.auth
+    prefix=settings.api.v1.auth,
+)
+router.include_router(
+    tasks_router,
+    prefix=settings.api.v1.tasks,
 )
