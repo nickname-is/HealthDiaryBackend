@@ -9,12 +9,18 @@ from fastapi.openapi.docs import (
 )
 from fastapi.middleware.cors import CORSMiddleware
 
+from core.scheduler import start_scheduler, stop_scheduler
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # startup
+    start_scheduler()
+    print("APScheduler started")
     yield
     # shutdown
+    stop_scheduler()
+    print("APScheduler stopped")
 
 
 def register_static_docs_routes(app: FastAPI):
