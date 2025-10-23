@@ -4,7 +4,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from enum import Enum as PythonEnum
 
 from .base import Base
-from .mixins.time_mixin import TimeMixin
 
 from sqlalchemy import (
     BigInteger,
@@ -12,6 +11,7 @@ from sqlalchemy import (
     Float,
     String,
     CheckConstraint,
+    ForeignKey,
 )
 
 if TYPE_CHECKING:
@@ -49,10 +49,16 @@ class DosageTypeEnum(PythonEnum):
     INHALER = "Ингалятор"
 
 
-class Drug(Base, TimeMixin):
+class Drug(Base):
     __tablename__ = "drugs"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    task_id: Mapped[int] = mapped_column(
+        BigInteger,
+        ForeignKey("tasks.id", ondelete="CASCADE"),
+        nullable=False,
+        unique=True
+    )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     dosage: Mapped[float] = mapped_column(Float, nullable=False)
     dosage_unit: Mapped[DosageUnitEnum] = mapped_column(Enum(DosageUnitEnum), nullable=False)
