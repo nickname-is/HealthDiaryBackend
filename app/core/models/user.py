@@ -18,6 +18,7 @@ from sqlalchemy import (
 if TYPE_CHECKING:
     from .refresh_token import RefreshToken
     from .email_verification import EmailVerification
+    from .activity import Activity
 
 
 class GenderEnum(PythonEnum):
@@ -45,6 +46,9 @@ class User(Base, TimeMixin):
     )
     email_verification: Mapped["EmailVerification"] = relationship(
         "EmailVerification", back_populates="user", cascade="all, delete-orphan", uselist=False
+    )
+    activities: Mapped[list["Activity"]] = relationship(
+        "Activity", back_populates="user", cascade="all, delete-orphan"
     )
 
     __table_args__ = (

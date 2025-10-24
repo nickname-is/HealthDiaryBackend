@@ -7,6 +7,7 @@ __all__ = (
     "EmailVerification",
     "Task",
     "TaskRepeat",
+    "Activity",
 )
 
 from .db_helper import db_helper
@@ -17,3 +18,4 @@ from .drug import Drug
 from .email_verification import EmailVerification
 from .task import Task
 from .task_repeat import TaskRepeat
+from .activity import Activity
