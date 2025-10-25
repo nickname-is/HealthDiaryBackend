@@ -8,7 +8,7 @@ class ApiV1Prefix(BaseModel):
     prefix: str = "/v1"
     users: str = "/users"
     auth: str = "/auth"
-    tasks: str = "/tasks"
+    tasks: str = "/users/{user_id}/tasks"
 
 
 class ApiPrefix(BaseModel):
