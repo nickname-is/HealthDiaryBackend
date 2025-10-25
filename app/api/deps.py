@@ -26,11 +26,11 @@ TokenDep = Annotated[str, Depends(reusable_oauth2)]
 
 
 async def get_current_user(
-        session: Annotated[
-            AsyncSession,
-            Depends(db_helper.session_getter),
-        ],
-        token: TokenDep
+    session: Annotated[
+        AsyncSession,
+        Depends(db_helper.session_getter),
+    ],
+    token: TokenDep
 ) -> User:
     try:
         payload = jwt.decode(
@@ -52,3 +52,15 @@ async def get_current_user(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     return user
+
+
+async def check_user_permission(
+    user_id: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> User:
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to access or modify this user's data."
+        )
+    return current_user
