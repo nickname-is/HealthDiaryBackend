@@ -6,7 +6,6 @@ from pydantic import BaseModel, ConfigDict, field_validator
 
 
 class ActivityBase(BaseModel):
-    record_date: date
     steps: Optional[int] = 0
     calories: Optional[float] = 0.0
     rest_hours: Optional[float] = 0.0
@@ -20,7 +19,16 @@ class ActivityBase(BaseModel):
         return v
 
 
+class ActivityAggregate(ActivityBase):
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+    start_period: date
+
+
 class ActivityUpsert(ActivityBase):
+    record_date: date
     add_to_existing: bool = False
 
 
@@ -29,5 +37,6 @@ class ActivityRead(ActivityBase):
         from_attributes=True,
     )
 
-    id: int
-    guid: UUID
+    record_date: date
+    id: Optional[int] = None
+    guid: Optional[UUID] = None
