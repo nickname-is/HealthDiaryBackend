@@ -9,6 +9,7 @@ class ApiV1Prefix(BaseModel):
     users: str = "/users"
     auth: str = "/auth"
     tasks: str = "/users/{user_id}/tasks"
+    activities: str = "/users/{user_id}/activities"
 
 
 class ApiPrefix(BaseModel):
