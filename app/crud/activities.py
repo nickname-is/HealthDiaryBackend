@@ -1,4 +1,5 @@
-from typing import Sequence
+from typing import Sequence, Optional
+from datetime import date
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -54,6 +55,29 @@ async def get_activities(session: AsyncSession, user_id: int) -> Sequence[Activi
     result = await session.execute(
         select(Activity).where(Activity.user_id == user_id).order_by(Activity.record_date.desc())
     )
+    return result.scalars().all()
+
+
+async def get_activities_filtered(
+    session: AsyncSession,
+    user_id: int,
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+) -> Sequence[Activity]:
+    query = select(Activity).where(Activity.user_id == user_id)
+
+    if start_date and end_date:
+        if start_date > end_date:
+            raise ValueError("start_date не может быть больше end_date")
+        query = query.where(Activity.record_date.between(start_date, end_date))
+    elif start_date:
+        query = query.where(Activity.record_date >= start_date)
+    elif end_date:
+        query = query.where(Activity.record_date <= end_date)
+
+    query = query.order_by(Activity.record_date.desc())
+
+    result = await session.execute(query)
     return result.scalars().all()
 
 
