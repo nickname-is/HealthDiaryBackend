@@ -27,9 +27,9 @@ router = APIRouter(tags=["Activities"])
 
 
 class PeriodEnum(PythonEnum):
+    DAY = "day"
     WEEK = "week"
     MONTH = "month"
-    SIX_MONTHS = "six_months"
     YEAR = "year"
 
 
@@ -38,7 +38,10 @@ async def read_activities(
     user_id: int,
     _current_user: Annotated[User, Depends(check_user_permission)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
-    period: Optional[PeriodEnum] = Query(None, description="Предустановленный диапазон: week, month, six_months, year"),
+    period: Optional[PeriodEnum] = Query(
+        None,
+        description="Предустановленный диапазон: day (неделя), week (месяц), month (полугодие), year (5 лет)"
+    ),
     offset: Optional[int] = Query(0, description="Сдвиг периода (влево: -1, вправо: +1)"),
 ):
     if not period:
@@ -46,17 +49,18 @@ async def read_activities(
 
     today = date.today()
     ranges: list[tuple[date, date]] = []
-    is_week = False
+    is_day = False
 
-    if period == PeriodEnum.WEEK:
+    if period == PeriodEnum.DAY:
         start_of_week = today - timedelta(days=today.weekday()) + relativedelta(weeks=offset)
         ranges = [(start_of_week + timedelta(days=day_index), start_of_week + timedelta(days=day_index))
                   for day_index in range(7)]
-        is_week = True
+        is_day = True
 
-    elif period == PeriodEnum.MONTH:
+    elif period == PeriodEnum.WEEK:
         start_of_month = today.replace(day=1) + relativedelta(months=offset)
         current_start = start_of_month
+
         while current_start.month == start_of_month.month:
             current_end = current_start + timedelta(days=6)
             if current_end.month != current_start.month:
@@ -64,27 +68,30 @@ async def read_activities(
             ranges.append((current_start, current_end))
             current_start = current_end + timedelta(days=1)
 
-    elif period == PeriodEnum.SIX_MONTHS:
+
+    elif period == PeriodEnum.MONTH:
         start_month = (today.month - 1) // 6 * 6 + 1
         start_date = date(today.year, start_month, 1) + relativedelta(months=6 * offset)
+
         for month_index in range(6):
             month_start = start_date + relativedelta(months=month_index)
             month_end = month_start + relativedelta(months=1) - timedelta(days=1)
             ranges.append((month_start, month_end))
 
     elif period == PeriodEnum.YEAR:
-        start_date = date(today.year, 1, 1) + relativedelta(years=offset)
-        for quarter in range(4):
-            quarter_start = start_date + relativedelta(months=3 * quarter)
-            quarter_end = quarter_start + relativedelta(months=3) - timedelta(days=1)
-            ranges.append((quarter_start, quarter_end))
+        start_year = today.year - (today.year % 5) + (offset * 5)
+
+        for i in range(5):
+            year_start = date(start_year + i, 1, 1)
+            year_end = date(start_year + i, 12, 31)
+            ranges.append((year_start, year_end))
 
     else:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unsupported period")
 
     aggregated: list[ActivityRead | ActivityAggregate] = []
 
-    if is_week:
+    if is_day:
         all_activities = await crud_activities.get_activities_filtered(
             session=session,
             user_id=user_id,
@@ -113,9 +120,9 @@ async def read_activities(
             aggregated.append(ActivityAggregate(
                 start_period=start,
                 steps=sum(activity.steps for activity in activities) if activities else 0,
-                calories=sum(activity.calories for activity in activities) if activities else 0.0,
-                rest_hours=sum(activity.rest_hours for activity in activities) if activities else 0.0,
-                distance_km=sum(activity.distance_km for activity in activities) if activities else 0.0,
+                calories=round(sum(activity.calories for activity in activities), 1) if activities else 0.0,
+                rest_hours=round(sum(activity.rest_hours for activity in activities), 1) if activities else 0.0,
+                distance_km=round(sum(activity.distance_km for activity in activities), 2) if activities else 0.0,
             ))
 
     return aggregated
