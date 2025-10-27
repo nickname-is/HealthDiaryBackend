@@ -35,11 +35,9 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id', name=op.f('pk_email_verifications'))
     )
     op.create_index(op.f('ix_email_verifications_user_id'), 'email_verifications', ['user_id'], unique=True)
-    op.add_column('users', sa.Column('is_verified', sa.Boolean(), server_default=sa.text('false'), nullable=False))
 
 
 def downgrade() -> None:
     """Downgrade schema."""
-    op.drop_column('users', 'is_verified')
     op.drop_index(op.f('ix_email_verifications_user_id'), table_name='email_verifications')
     op.drop_table('email_verifications')

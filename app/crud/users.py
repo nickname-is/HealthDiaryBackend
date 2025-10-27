@@ -34,10 +34,10 @@ async def get_user_by_email(
 
 
 async def check_unique(
-        session: AsyncSession,
-        column: InstrumentedAttribute,
-        value: str | EmailStr,
-        user_id: int | None = None
+    session: AsyncSession,
+    column: InstrumentedAttribute,
+    value: str | EmailStr,
+    user_id: int | None = None
 ) -> None:
     statement = select(User).where(column == value)
     existing = await session.scalar(statement)
@@ -50,7 +50,6 @@ async def check_unique(
 
 async def create_user(session: AsyncSession, user_create: UserCreate,) -> User:
     await check_unique(session, User.email, user_create.email)
-    await check_unique(session, User.nickname, user_create.nickname)
 
     user = User(**user_create.model_dump())
     user.password = get_hash_password(user_create.password)
@@ -67,8 +66,6 @@ async def update_user(session: AsyncSession, user: User, user_update: UserUpdate
 
     if "email" in update_data:
         await check_unique(session, User.email, update_data["email"], user.id)
-    if "nickname" in update_data:
-        await check_unique(session, User.nickname, update_data["nickname"], user.id)
 
     if "password" in update_data:
         update_data["password"] = get_hash_password(update_data["password"])
@@ -107,9 +104,9 @@ async def verify_user(session: AsyncSession, user_id: int) -> Optional[User]:
 
 
 async def authenticate(
-        session: AsyncSession,
-        email: str,
-        password: str
+    session: AsyncSession,
+    email: str,
+    password: str
 ) -> User | None:
     user = await get_user_by_email(session=session, email=email)
     if not user:
