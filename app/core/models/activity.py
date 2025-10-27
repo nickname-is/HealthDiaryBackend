@@ -2,7 +2,6 @@ import uuid
 from datetime import date
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from enum import Enum as PythonEnum
 from typing import TYPE_CHECKING
 
 from .base import Base
@@ -21,11 +20,6 @@ from sqlalchemy import (
 
 if TYPE_CHECKING:
     from .user import User
-
-
-class GenderEnum(PythonEnum):
-    M = "M"
-    F = "F"
 
 
 class Activity(Base, TimeMixin):
