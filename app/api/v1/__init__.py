@@ -6,6 +6,7 @@ from .users import router as users_router
 from .auth import router as auth_router
 from .tasks import router as tasks_router
 from .activities import router as activities_router
+from .water_intakes import router as water_intakes_router
 
 router = APIRouter(
     prefix=settings.api.v1.prefix,
@@ -25,4 +26,8 @@ router.include_router(
 router.include_router(
     activities_router,
     prefix=settings.api.v1.activities,
+)
+router.include_router(
+    water_intakes_router,
+    prefix=settings.api.v1.water_intakes,
 )
