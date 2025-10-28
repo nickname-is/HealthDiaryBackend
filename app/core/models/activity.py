@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 class Activity(Base, TimeMixin):
     __tablename__ = "activities"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     guid: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         unique=True,
@@ -51,5 +51,5 @@ class Activity(Base, TimeMixin):
         CheckConstraint('calories >= 0', name='check_positive_calories'),
         CheckConstraint('rest_hours >= 0', name='check_positive_rest_hours'),
         CheckConstraint('distance_km >= 0', name='check_positive_distance_km'),
-        UniqueConstraint('user_id', 'record_date', name='uq_user_record_date'),
+        UniqueConstraint('user_id', 'record_date', name='uq_activities_user_id_record_date'),
     )
