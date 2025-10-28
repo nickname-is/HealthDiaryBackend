@@ -16,6 +16,7 @@ from sqlalchemy import (
     Integer,
     CheckConstraint,
     ForeignKey,
+    UniqueConstraint,
 )
 
 if TYPE_CHECKING:
@@ -37,7 +38,7 @@ class Activity(Base, TimeMixin):
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False
     )
-    record_date: Mapped[date] = mapped_column(Date, nullable=False, index=True, unique=True)
+    record_date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
     steps: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"))
     calories: Mapped[float] = mapped_column(Float, default=0.0, server_default=text("0.0"))
     rest_hours: Mapped[float] = mapped_column(Float, default=0.0, server_default=text("0.0"))
@@ -50,4 +51,5 @@ class Activity(Base, TimeMixin):
         CheckConstraint('calories >= 0', name='check_positive_calories'),
         CheckConstraint('rest_hours >= 0', name='check_positive_rest_hours'),
         CheckConstraint('distance_km >= 0', name='check_positive_distance_km'),
+        UniqueConstraint('user_id', 'record_date', name='uq_user_record_date'),
     )

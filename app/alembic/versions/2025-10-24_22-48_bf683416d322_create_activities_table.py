@@ -41,7 +41,8 @@ def upgrade() -> None:
     sa.UniqueConstraint('guid', name=op.f('uq_activities_guid'))
     )
     op.create_index(op.f('ix_activities_id'), 'activities', ['id'], unique=False)
-    op.create_index(op.f('ix_activities_record_date'), 'activities', ['record_date'], unique=True)
+    op.create_index(op.f('ix_activities_record_date'), 'activities', ['record_date'], unique=False)
+    op.create_unique_constraint('uq_user_record_date', 'activities', ['user_id', 'record_date'])
     # ### end Alembic commands ###
 
 
