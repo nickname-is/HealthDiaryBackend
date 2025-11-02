@@ -11,6 +11,7 @@ class ApiV1Prefix(BaseModel):
     tasks: str = "/users/{user_id}/tasks"
     activities: str = "/users/{user_id}/activities"
     water_intakes: str = "/users/{user_id}/water_intakes"
+    sleeps: str = "/users/{user_id}/sleeps"
 
 
 class ApiPrefix(BaseModel):

@@ -7,6 +7,7 @@ from .auth import router as auth_router
 from .tasks import router as tasks_router
 from .activities import router as activities_router
 from .water_intakes import router as water_intakes_router
+from .sleeps import router as sleeps_router
 
 router = APIRouter(
     prefix=settings.api.v1.prefix,
@@ -30,4 +31,8 @@ router.include_router(
 router.include_router(
     water_intakes_router,
     prefix=settings.api.v1.water_intakes,
+)
+router.include_router(
+    sleeps_router,
+    prefix=settings.api.v1.sleeps,
 )
