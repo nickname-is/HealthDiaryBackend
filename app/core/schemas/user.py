@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from typing import Optional
 
 from pydantic import (
@@ -22,6 +22,7 @@ class UserBase(BaseModel):
     waist_circumference: Optional[PositiveFloat] = None
     hips_circumference: Optional[PositiveFloat] = None
     gender: Optional[GenderEnum] = None
+    birth_date: Optional[date] = None
     avatar: Optional[str] = None
 
 
@@ -40,6 +41,7 @@ class UserUpdate(BaseModel):
     waist_circumference: Optional[PositiveFloat] = None
     hips_circumference: Optional[PositiveFloat] = None
     gender: Optional[GenderEnum] = None
+    birth_date: Optional[date] = None
     avatar: Optional[str] = None
 
     # Строгая валидация

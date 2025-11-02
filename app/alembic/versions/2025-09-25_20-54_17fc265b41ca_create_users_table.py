@@ -32,6 +32,7 @@ def upgrade() -> None:
     sa.Column('waist_circumference', sa.Float(), nullable=True),
     sa.Column('hips_circumference', sa.Float(), nullable=True),
     sa.Column('gender', sa.Enum('M', 'F', name='genderenum'), nullable=True),
+    sa.Column('birth_date', sa.Date(), nullable=True),
     sa.Column('avatar', sa.String(length=512), nullable=True),
     sa.Column('is_verified', sa.Boolean(), server_default=sa.text('false'), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),

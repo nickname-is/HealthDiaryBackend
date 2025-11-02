@@ -1,10 +1,8 @@
-from sqlalchemy.orm import Mapped, mapped_column, relationship
 from enum import Enum as PythonEnum
 from typing import Optional, TYPE_CHECKING
+from datetime import date
 
-from .base import Base
-from .mixins.time_mixin import TimeMixin
-
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import (
     BigInteger,
     Enum,
@@ -13,7 +11,11 @@ from sqlalchemy import (
     CheckConstraint,
     Boolean,
     false,
+    Date,
 )
+
+from .base import Base
+from .mixins.time_mixin import TimeMixin
 
 if TYPE_CHECKING:
     from .refresh_token import RefreshToken
@@ -42,6 +44,7 @@ class User(Base, TimeMixin):
     waist_circumference: Mapped[Optional[float]] = mapped_column(Float)
     hips_circumference: Mapped[Optional[float]] = mapped_column(Float)
     gender: Mapped[Optional[GenderEnum]] = mapped_column(Enum(GenderEnum))
+    birth_date: Mapped[Optional[date]] = mapped_column(Date)
     avatar: Mapped[Optional[str]] = mapped_column(String(512))
     is_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=false())
 
