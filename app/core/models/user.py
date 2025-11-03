@@ -23,6 +23,7 @@ if TYPE_CHECKING:
     from .activity import Activity
     from .water_intake import WaterIntake
     from .sleep import Sleep
+    from .body_temperature import BodyTemperature
 
 
 class GenderEnum(PythonEnum):
@@ -62,6 +63,9 @@ class User(Base, TimeMixin):
     )
     sleeps: Mapped[list["Sleep"]] = relationship(
         "Sleep", back_populates="user", cascade="all, delete-orphan"
+    )
+    body_temperatures: Mapped[list["BodyTemperature"]] = relationship(
+        "BodyTemperature", back_populates="user", cascade="all, delete-orphan"
     )
 
     __table_args__ = (

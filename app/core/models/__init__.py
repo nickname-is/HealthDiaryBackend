@@ -9,9 +9,11 @@ __all__ = (
     "TaskRepeat",
     "Activity",
     "WaterIntake",
-    "Sleep"
+    "Sleep",
+    "BodyTemperature",
 )
 
+from .body_temperature import BodyTemperature
 from .db_helper import db_helper
 from .base import Base
 from .user import User
@@ -23,3 +25,4 @@ from .task_repeat import TaskRepeat
 from .activity import Activity
 from .water_intake import WaterIntake
 from .sleep import Sleep
+from .body_temperature import BodyTemperature
