@@ -35,7 +35,7 @@ class SleepBase(BaseModel):
         return f"{hours:02}:{mins:02}"
 
 
-class SleepCreate(SleepBase):
+class SleepUpsert(SleepBase):
     pass
 
 

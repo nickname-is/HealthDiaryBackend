@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api.deps import check_user_permission
 from core.models import db_helper
 from core.models.user import User
-from core.schemas.sleep import SleepRead, SleepCreate
+from core.schemas.sleep import SleepRead, SleepUpsert
 
 import crud.sleeps as crud_sleeps
 
@@ -31,15 +31,19 @@ async def read_sleep(
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
     record_date: date = Query(..., description="Дата записи сна (YYYY-MM-DD)"),
 ):
-    sleep = await crud_sleeps.get_sleep(session, user_id, record_date)
+    sleep = await crud_sleeps.get_sleep(
+        session=session,
+        user_id=user_id,
+        record_date=record_date,
+    )
 
     if not sleep:
-        raise HTTPException(status_code=404, detail="Sleep recording not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sleep recording not found")
     return SleepRead(
         id=sleep.id,
         guid=sleep.guid,
         record_date=sleep.record_date,
-        sleep_duration=SleepCreate.minutes_to_str(sleep.sleep_duration_minutes),
+        sleep_duration=SleepUpsert.minutes_to_str(sleep.sleep_duration_minutes),
         sleep_quality=sleep.sleep_quality,
         notes=sleep.notes,
     )
@@ -48,17 +52,21 @@ async def read_sleep(
 @router.post("/", response_model=SleepRead, status_code=status.HTTP_201_CREATED)
 async def create_or_update_sleep(
     user_id: int,
-    sleep_in: SleepCreate,
+    sleep_in: SleepUpsert,
     _current_user: Annotated[User, Depends(check_user_permission)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ):
-    sleep = await crud_sleeps.upsert_sleep(session, user_id, sleep_in)
+    sleep = await crud_sleeps.upsert_sleep(
+        session=session,
+        user_id=user_id,
+        sleep_in=sleep_in,
+    )
 
     return SleepRead(
         id=sleep.id,
         guid=sleep.guid,
         record_date=sleep.record_date,
-        sleep_duration=SleepCreate.minutes_to_str(sleep.sleep_duration_minutes),
+        sleep_duration=SleepUpsert.minutes_to_str(sleep.sleep_duration_minutes),
         sleep_quality=sleep.sleep_quality,
         notes=sleep.notes,
     )
