@@ -8,6 +8,7 @@ from .tasks import router as tasks_router
 from .activities import router as activities_router
 from .water_intakes import router as water_intakes_router
 from .sleeps import router as sleeps_router
+from .body_temperatures import router as body_temperatures_router
 
 router = APIRouter(
     prefix=settings.api.v1.prefix,
@@ -35,4 +36,8 @@ router.include_router(
 router.include_router(
     sleeps_router,
     prefix=settings.api.v1.sleeps,
+)
+router.include_router(
+    body_temperatures_router,
+    prefix=settings.api.v1.body_temperatures,
 )
