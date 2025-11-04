@@ -63,7 +63,7 @@ async def create_or_update_body_temperature(
     return body_temperature
 
 
-@router.delete("/", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{body_temp_guid}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_body_temperature(
     user_id: int,
     body_temp_guid: uuid.UUID,
