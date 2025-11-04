@@ -17,7 +17,7 @@ async def get_body_temperature(
     result = await session.scalars(
         select(BodyTemperature).where(
             BodyTemperature.user_id == user_id,
-            BodyTemperature.record_datetime == record_datetime,
+            BodyTemperature.record_datetime == record_datetime.replace(second=0, microsecond=0),
         )
     )
 

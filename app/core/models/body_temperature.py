@@ -12,6 +12,7 @@ from sqlalchemy import (
     Float,
     CheckConstraint,
     UniqueConstraint,
+    event,
 )
 
 from core.models.base import Base
@@ -50,3 +51,10 @@ class BodyTemperature(Base, TimeMixin):
         CheckConstraint("temperature_c >= 13.0 AND temperature_c <= 47.0", name="check_temperature_range"),
         UniqueConstraint('user_id', 'record_datetime', name='uq_body_temperatures_user_id_record_datetime'),
     )
+
+
+@event.listens_for(BodyTemperature, "before_insert")
+def receive_before_insert(mapper, connection, target):
+    if target.record_datetime:
+        # Округляем время до минут (удаляем секунды и микросекунды)
+        target.record_datetime = target.record_datetime.replace(second=0, microsecond=0)
