@@ -15,7 +15,7 @@ class ActivityBase(BaseModel):
     @classmethod
     def non_negative(cls, v, field):
         if v is not None and v < 0:
-            raise ValueError(f"{field.name} cannot be negative")
+            raise ValueError(f"{field.field_name} cannot be negative")
         return v
 
 
