@@ -1,0 +1,4 @@
+[
+    {"name": "Без рекламы", "slug": "no_ads", "price_rub": 99},
+    {"name": "Расширенный функционал", "slug": "advanced_functionality", "price_rub": 199}
+]
