@@ -12,6 +12,7 @@ __all__ = (
     "Sleep",
     "BodyTemperature",
     "SubscriptionPlan",
+    "UserSubscription",
 )
 
 from .body_temperature import BodyTemperature
@@ -28,3 +29,4 @@ from .water_intake import WaterIntake
 from .sleep import Sleep
 from .body_temperature import BodyTemperature
 from .subscription_plan import SubscriptionPlan
+from .user_subscription import UserSubscription
