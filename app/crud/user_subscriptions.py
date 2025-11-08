@@ -36,7 +36,7 @@ async def create_user_subscription(
     )
     subscription = existing.first()
 
-    if existing:
+    if subscription:
         await delete_user_subscription(session=session, user_subscription=subscription)
 
     new_sub = UserSubscription(
