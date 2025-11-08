@@ -13,6 +13,7 @@ class ApiV1Prefix(BaseModel):
     water_intakes: str = "/users/{user_id}/water_intakes"
     sleeps: str = "/users/{user_id}/sleeps"
     body_temperatures: str = "/users/{user_id}/body_temperatures"
+    subscriptions: str = "/users/{user_id}/subscriptions"
 
 
 class ApiPrefix(BaseModel):
