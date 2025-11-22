@@ -106,6 +106,12 @@ async def create_user(session: AsyncSession, user_create: UserCreate,) -> User:
 async def update_user(session: AsyncSession, user: User, user_update: UserUpdate) -> User:
     update_data = user_update.model_dump(exclude_unset=True)
 
+    if "first_name" in update_data:
+        validate_name(update_data["first_name"])
+
+    if "last_name" in update_data:
+        validate_name(update_data["last_name"])
+
     if "email" in update_data:
         await check_unique(session, User.email, update_data["email"], user.id)
 
