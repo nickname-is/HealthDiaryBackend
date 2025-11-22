@@ -12,6 +12,7 @@ from sqlalchemy import (
     Boolean,
     false,
     Date,
+    Text,
 )
 
 from .base import Base
@@ -37,6 +38,7 @@ class User(Base, TimeMixin):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     first_name: Mapped[str] = mapped_column(String(255), nullable=False)
     last_name: Mapped[Optional[str]] = mapped_column(String(255))
+    bio: Mapped[Optional[str]] = mapped_column(Text)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(String(255), nullable=False)
     height: Mapped[Optional[float]] = mapped_column(Float)
