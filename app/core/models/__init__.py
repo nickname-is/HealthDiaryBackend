@@ -4,7 +4,7 @@ __all__ = (
     "User",
     "RefreshToken",
     "Drug",
-    "EmailVerification",
+    "Verification",
     "Task",
     "TaskRepeat",
     "Activity",
@@ -13,6 +13,7 @@ __all__ = (
     "BodyTemperature",
     "SubscriptionPlan",
     "UserSubscription",
+    "VerificationType",
 )
 
 from .body_temperature import BodyTemperature
@@ -21,7 +22,7 @@ from .base import Base
 from .user import User
 from .refresh_token import RefreshToken
 from .drug import Drug
-from .email_verification import EmailVerification
+from .verification import Verification
 from .task import Task
 from .task_repeat import TaskRepeat
 from .activity import Activity
@@ -30,3 +31,4 @@ from .sleep import Sleep
 from .body_temperature import BodyTemperature
 from .subscription_plan import SubscriptionPlan
 from .user_subscription import UserSubscription
+from .verification_type import VerificationType

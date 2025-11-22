@@ -1,0 +1,4 @@
+[
+    {"id": 1, "name": "email_verification", "description": "Подтверждение электронной почты"},
+    {"id": 2, "name": "reset_password", "description": "Запрос на сброс пароля"}
+]

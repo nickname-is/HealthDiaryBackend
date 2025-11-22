@@ -20,7 +20,7 @@ from .mixins.time_mixin import TimeMixin
 
 if TYPE_CHECKING:
     from .refresh_token import RefreshToken
-    from .email_verification import EmailVerification
+    from .verification import Verification
     from .activity import Activity
     from .water_intake import WaterIntake
     from .sleep import Sleep
@@ -54,8 +54,8 @@ class User(Base, TimeMixin):
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship(
         "RefreshToken", back_populates="user", cascade="all, delete-orphan"
     )
-    email_verification: Mapped["EmailVerification"] = relationship(
-        "EmailVerification", back_populates="user", cascade="all, delete-orphan", uselist=False
+    verifications: Mapped["Verification"] = relationship(
+        "Verification", back_populates="user", cascade="all, delete-orphan", uselist=False
     )
     activities: Mapped[list["Activity"]] = relationship(
         "Activity", back_populates="user", cascade="all, delete-orphan"
