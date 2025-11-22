@@ -1,4 +1,5 @@
 from typing import Sequence, Optional
+import re
 
 from pydantic import EmailStr
 from sqlalchemy import select
@@ -24,8 +25,8 @@ async def get_user_by_id(session: AsyncSession, user_id: int,) -> User | None:
 
 
 async def get_user_by_email(
-        session: AsyncSession,
-        email: str
+    session: AsyncSession,
+    email: str
 ) -> User | None:
     statement = select(User).where(User.email == email)
     result = await session.scalar(statement)
@@ -48,8 +49,49 @@ async def check_unique(
         )
 
 
+def check_password_strength(password: str) -> None:
+    errors = []
+
+    if len(password) < 8:
+        errors.append("Password must be at least 8 characters long.")
+
+    if not re.search(r'[A-Z]', password):
+        errors.append("Password must contain at least one uppercase letter.")
+
+    if not re.search(r'[0-9]', password):
+        errors.append("Password must contain at least one digit.")
+
+    if not re.search(r'[\W_]', password):  # \W - любые не-алфавитные символы
+        errors.append("Password must contain at least one special character.")
+
+    if errors:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "message": "Invalid password",
+                "password_errors": errors
+            }
+        )
+
+
+def validate_name(name: str) -> None:
+    # Разрешены буквы всех языков, цифры, пробелы, апострофы, дефисы и нижние подчёркивания
+    if not re.match(r"^[\w\s'-]+$", name, re.UNICODE):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Name can only contain letters (any language), digits, spaces, apostrophes, hyphens, and underscores."
+        )
+
+
 async def create_user(session: AsyncSession, user_create: UserCreate,) -> User:
     await check_unique(session, User.email, user_create.email)
+
+    validate_name(user_create.first_name)
+
+    if user_create.last_name:
+        validate_name(user_create.last_name)
+
+    check_password_strength(user_create.password)
 
     user = User(**user_create.model_dump())
     user.password = get_hash_password(user_create.password)
@@ -68,6 +110,7 @@ async def update_user(session: AsyncSession, user: User, user_update: UserUpdate
         await check_unique(session, User.email, update_data["email"], user.id)
 
     if "password" in update_data:
+        check_password_strength(password=user_update.password)
         update_data["password"] = get_hash_password(update_data["password"])
 
     for field, value in update_data.items():
