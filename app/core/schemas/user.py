@@ -15,6 +15,7 @@ from core.models.user import GenderEnum
 class UserBase(BaseModel):
     first_name: str
     last_name: Optional[str] = None
+    bio: Optional[str] = None
     email: EmailStr
     height: Optional[PositiveFloat] = None
     weight: Optional[PositiveFloat] = None
@@ -33,6 +34,7 @@ class UserCreate(UserBase):
 class UserUpdate(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
+    bio: Optional[str] = None
     email: Optional[EmailStr] = None
     password: Optional[str] = None
     height: Optional[PositiveFloat] = None
