@@ -27,7 +27,7 @@ def upgrade() -> None:
     sa.Column('dosage_unit', sa.Enum('MILLIGRAM', 'GRAM', 'MILLILITER', 'MICROGRAM', 'UNIT', 'PIECE', 'DROP', 'SPRAY', 'TABLESPOON', 'TEASPOON', name='dosageunitenum'), nullable=False),
     sa.Column('dosage_type', sa.Enum('CAPSULE', 'PILL', 'POWDER', 'AMPOULE', 'SOLUTION', 'SUSPENSION', 'CREAM', 'OINTMENT', 'GEL', 'SUPPOSITORY', 'SPRAY', 'DROP', 'FOAM', 'PATCH', 'INHALER', name='dosagetypeenum'), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('edited_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_drugs'))
     )
 

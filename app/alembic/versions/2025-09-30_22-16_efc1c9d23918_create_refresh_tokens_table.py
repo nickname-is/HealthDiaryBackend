@@ -28,7 +28,7 @@ def upgrade() -> None:
     sa.Column('expire_at', sa.DateTime(), nullable=False),
     sa.Column('fingerprint', sa.String(length=255), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('edited_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], name=op.f('fk_refresh_tokens_user_id_users'), ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_refresh_tokens')),
     sa.UniqueConstraint('token', name=op.f('uq_refresh_tokens_token'))
