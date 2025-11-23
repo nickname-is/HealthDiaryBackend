@@ -3,6 +3,7 @@ import uvicorn
 from core.config import settings
 
 from api import router as api_router
+from media_router import router as media_router
 
 from create_fastapi_app import create_app
 
@@ -17,6 +18,9 @@ main_app = create_app(
 )
 main_app.include_router(
     api_router,
+)
+main_app.include_router(
+    media_router,
 )
 
 
