@@ -14,6 +14,7 @@ services:
       - "80:8000"
     volumes:
       - .:/healthdiarybackend
+      - media_volume:/healthdiarybackend/media
     depends_on:
       db:
         condition: service_healthy  # Ждём, пока Postgres не станет "healthy"
@@ -44,3 +45,4 @@ services:
 
 volumes:
   pgdata:
+  media_volume:
