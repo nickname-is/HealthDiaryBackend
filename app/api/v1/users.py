@@ -97,19 +97,12 @@ async def create_user(
 async def update_user(
     user_id: int,
     user_in: UserUpdate,
-    current_user: Annotated[User, Depends(get_current_user)],
+    _current_user: Annotated[User, Depends(check_user_permission)],
     session: Annotated[
         AsyncSession,
         Depends(db_helper.session_getter),
     ],
 ):
-    # Проверяем права: пользователь может изменять данные только о себе
-    if current_user.id != user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to update this user"
-        )
-
     db_user = await users_crud.get_user_by_id(session, user_id)
     if not db_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
@@ -185,19 +178,12 @@ async def upload_user_avatar(
 @router.delete("/{user_id}")
 async def delete_user(
     user_id: int,
-    current_user: Annotated[User, Depends(get_current_user)],
+    _current_user: Annotated[User, Depends(check_user_permission)],
     session: Annotated[
         AsyncSession,
         Depends(db_helper.session_getter),
     ],
 ):
-    # Проверяем права: пользователь может удалить только себя
-    if current_user.id != user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to delete this user"
-        )
-
     user = await users_crud.delete_user(session, user_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
