@@ -50,7 +50,7 @@ EXT_MAP = {
 MAX_AVATAR_SIZE = 5 * 1024 * 1024  # 5 MB
 
 
-@router.get("/", response_model=list[UserRead])
+@router.get("", response_model=list[UserRead])
 async def read_users(
     session: Annotated[
         AsyncSession,
@@ -75,11 +75,13 @@ async def read_user(
 ):
     user = await users_crud.get_user_by_id(session, user_id)
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
     return user
 
 
-@router.post("/", response_model=UserRead, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 @limiter.limit("5/minute")
 async def create_user(
     request: Request,
@@ -105,7 +107,9 @@ async def update_user(
 ):
     db_user = await users_crud.get_user_by_id(session, user_id)
     if not db_user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
     return await users_crud.update_user(session, db_user, user_in)
 
 
@@ -141,7 +145,7 @@ async def upload_user_avatar(
                 tmp_path.unlink(missing_ok=True)
                 raise HTTPException(
                     status_code=400,
-                    detail=f"File too large, max {MAX_AVATAR_SIZE} bytes"
+                    detail=f"File too large, max {MAX_AVATAR_SIZE} bytes",
                 )
             await f.write(content)
 
@@ -162,11 +166,10 @@ async def upload_user_avatar(
 
     os.rename(tmp_path, final_path)
 
-    await users_crud.update_user(
-        session=session,
-        user=user,
-        user_update=UserUpdate(avatar=final_name),
-    )
+    user.avatar = final_name
+    session.add(user)
+    await session.commit()
+    await session.refresh(user)
 
     return {
         "message": "Avatar uploaded",
@@ -186,6 +189,8 @@ async def delete_user(
 ):
     user = await users_crud.delete_user(session, user_id)
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
 
     return {"detail": "User deleted"}

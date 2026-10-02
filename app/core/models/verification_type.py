@@ -27,4 +27,6 @@ class VerificationType(Base, TimeMixin):
     name: Mapped[int] = mapped_column(String(64), nullable=False, unique=True)
     description: Mapped[Optional[str]] = mapped_column(String(255))
 
-    verifications: Mapped["Verification"] = relationship("Verification", back_populates="verification_type")
+    verifications: Mapped["Verification"] = relationship(
+        "Verification", back_populates="verification_type"
+    )

@@ -46,7 +46,5 @@ async def delete_token(session: AsyncSession, token: RefreshToken) -> None:
 
 
 async def delete_all_by_user(session: AsyncSession, user_id: int) -> None:
-    await session.execute(
-        delete(RefreshToken).where(RefreshToken.user_id == user_id)
-    )
+    await session.execute(delete(RefreshToken).where(RefreshToken.user_id == user_id))
     await session.commit()

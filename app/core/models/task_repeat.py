@@ -25,9 +25,11 @@ class TaskRepeat(Base):
         BigInteger,
         ForeignKey("tasks.id", ondelete="CASCADE"),
         nullable=False,
-        unique=True
+        unique=True,
     )
-    repeat_type: Mapped[RepeatTypeEnum] = mapped_column(Enum(RepeatTypeEnum), nullable=False)
+    repeat_type: Mapped[RepeatTypeEnum] = mapped_column(
+        Enum(RepeatTypeEnum), nullable=False
+    )
     repeat_interval: Mapped[int] = mapped_column(Integer, nullable=False)
 
     task: Mapped["Task"] = relationship(

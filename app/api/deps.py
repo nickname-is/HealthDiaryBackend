@@ -30,7 +30,7 @@ async def get_current_user(
         AsyncSession,
         Depends(db_helper.session_getter),
     ],
-    token: TokenDep
+    token: TokenDep,
 ) -> User:
     try:
         payload = jwt.decode(
@@ -43,13 +43,12 @@ async def get_current_user(
             detail=f"Could not validate credentials: {error}",
         )
 
-    user = await users_crud.get_user_by_id(
-        session=session,
-        user_id=token_data.sub
-    )
+    user = await users_crud.get_user_by_id(session=session, user_id=token_data.sub)
 
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
 
     return user
 
@@ -61,6 +60,6 @@ async def check_user_permission(
     if current_user.id != user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to access or modify this user's data."
+            detail="You do not have permission to access or modify this user's data.",
         )
     return current_user

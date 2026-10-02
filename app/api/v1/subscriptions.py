@@ -16,7 +16,9 @@ router = APIRouter(tags=["Subscriptions"])
 
 
 @router.get("/plans", response_model=list[SubscriptionPlanRead])
-async def list_plans(session: Annotated[AsyncSession, Depends(db_helper.session_getter)]):
+async def list_plans(
+    session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
+):
     return await subscription_plans_crud.get_all_plans(session=session)
 
 
@@ -25,9 +27,13 @@ async def get_current_subscription(
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
     current_user: Annotated[User, Depends(check_user_permission)],
 ):
-    sub = await user_subscriptions_crud.get_user_subscription(session=session, user_id=current_user.id)
+    sub = await user_subscriptions_crud.get_user_subscription(
+        session=session, user_id=current_user.id
+    )
     if not sub:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Подписка не найдена")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Подписка не найдена"
+        )
 
     return sub
 
@@ -38,9 +44,13 @@ async def activate_subscription(
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
     current_user: Annotated[User, Depends(check_user_permission)],
 ):
-    plan = await subscription_plans_crud.get_plan_by_id(session=session, plan_id=plan_id)
+    plan = await subscription_plans_crud.get_plan_by_id(
+        session=session, plan_id=plan_id
+    )
     if not plan:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="План не найден")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="План не найден"
+        )
 
     sub = await user_subscriptions_crud.create_user_subscription(
         session=session,

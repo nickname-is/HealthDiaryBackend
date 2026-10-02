@@ -10,7 +10,9 @@ from core.models.subscription_plan import SubscriptionPlan
 from core.schemas.user_subscription import UserSubscriptionRead
 
 
-async def get_user_subscription(session: AsyncSession, user_id: int) -> Optional[UserSubscriptionRead]:
+async def get_user_subscription(
+    session: AsyncSession, user_id: int
+) -> Optional[UserSubscriptionRead]:
     result = await session.scalars(
         select(UserSubscription)
         .where(UserSubscription.user_id == user_id)
@@ -20,16 +22,15 @@ async def get_user_subscription(session: AsyncSession, user_id: int) -> Optional
     return result.one_or_none()
 
 
-async def delete_user_subscription(session: AsyncSession, user_subscription: UserSubscription) -> None:
+async def delete_user_subscription(
+    session: AsyncSession, user_subscription: UserSubscription
+) -> None:
     await session.delete(user_subscription)
     await session.commit()
 
 
 async def create_user_subscription(
-    session: AsyncSession,
-    user_id: int,
-    plan: SubscriptionPlan,
-    months: int = 1
+    session: AsyncSession, user_id: int, plan: SubscriptionPlan, months: int = 1
 ) -> Optional[UserSubscriptionRead]:
     existing = await session.scalars(
         select(UserSubscription).where(UserSubscription.user_id == user_id)
@@ -43,7 +44,7 @@ async def create_user_subscription(
         user_id=user_id,
         plan_id=plan.id,
         start_date=datetime.now(tz=timezone.utc),
-        end_date=datetime.now(tz=timezone.utc) + timedelta(days=30 * months)
+        end_date=datetime.now(tz=timezone.utc) + timedelta(days=30 * months),
     )
     session.add(new_sub)
     await session.commit()

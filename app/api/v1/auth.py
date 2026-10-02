@@ -9,6 +9,7 @@ from fastapi import (
     HTTPException,
     Form,
     Request,
+    BackgroundTasks,
 )
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -21,7 +22,11 @@ from core.models.verification_type import VerificationTypes
 from core.schemas.reset_password import PasswordResetRequest
 from core.schemas.token import Token, LogoutRequest, RefreshRequest
 from core.schemas.user import UserRead, UserUpdate
-from core.schemas.verification import EmailVerification, ResetPasswordVerification, EmailVerificationRequest
+from core.schemas.verification import (
+    EmailVerification,
+    ResetPasswordVerification,
+    EmailVerificationRequest,
+)
 from core.security import create_access_token, create_refresh_token
 
 from crud import users as users_crud
@@ -38,7 +43,9 @@ router = APIRouter(tags=["Auth"])
 limiter = Limiter(key_func=get_remote_address)
 
 
-async def verify_otp_code(session: AsyncSession, user_id: int, otp_code: str, verification_type_id: int):
+async def verify_otp_code(
+    session: AsyncSession, user_id: int, otp_code: str, verification_type_id: int
+):
     verification = await verifications_crud.get_verification(
         session=session,
         user_id=user_id,
@@ -46,7 +53,10 @@ async def verify_otp_code(session: AsyncSession, user_id: int, otp_code: str, ve
     )
 
     if verification is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="The verification code does not exist")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="The verification code does not exist",
+        )
 
     if verification.expire_at < datetime.now(timezone.utc):
         await verifications_crud.delete_verification(
@@ -54,7 +64,9 @@ async def verify_otp_code(session: AsyncSession, user_id: int, otp_code: str, ve
             user_id=user_id,
             verification_type_id=verification_type_id,
         )
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The code has expired")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="The code has expired"
+        )
 
     if otp_code != verification.code:
         await verifications_crud.increase_attempts(
@@ -62,17 +74,20 @@ async def verify_otp_code(session: AsyncSession, user_id: int, otp_code: str, ve
             user_id=user_id,
             verification_type_id=verification_type_id,
         )
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The code is incorrect")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="The code is incorrect"
+        )
 
 
 async def check_user_verified(user: User):
     if not user.is_verified:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Verification required")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Verification required"
+        )
 
 
 async def get_verification_type_id(
-    session: AsyncSession,
-    verification_name: VerificationTypes
+    session: AsyncSession, verification_name: VerificationTypes
 ) -> Optional[int]:
     verification_type = await verifications_crud.get_verification_type_by_name(
         session=session,
@@ -82,7 +97,7 @@ async def get_verification_type_id(
     if not verification_type:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Verification type ({verification_name.value}) not found. Please contact support."
+            detail=f"Verification type ({verification_name.value}) not found. Please contact support.",
         )
 
     return verification_type.id
@@ -95,23 +110,22 @@ async def login_user(
     fingerprint: Optional[str] = Form(None),
 ) -> Token:
     user = await users_crud.authenticate(
-        session=session,
-        email=form_data.username,
-        password=form_data.password
+        session=session, email=form_data.username, password=form_data.password
     )
 
     if not user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Incorrect email or password"
+            detail="Incorrect email or password",
         )
 
     await check_user_verified(user)
 
     refresh_token = create_refresh_token()
 
-    expire_at = (datetime.now(timezone.utc).replace(tzinfo=None) +
-                 timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES))
+    expire_at = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(
+        minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES
+    )
     await refresh_crud.create_token(
         session=session,
         user_id=user.id,
@@ -134,10 +148,14 @@ async def logout(
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> dict:
     """Выход: удаление одного refresh токена"""
-    refresh_token = await refresh_crud.get_by_token(session, token=logout_request.refresh_token)
+    refresh_token = await refresh_crud.get_by_token(
+        session, token=logout_request.refresh_token
+    )
 
     if not refresh_token:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Token not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Token not found"
+        )
 
     await refresh_crud.delete_token(session, refresh_token)
 
@@ -163,13 +181,19 @@ async def refresh_tokens(
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> Token:
     """Обновление access/refresh пары"""
-    refresh_token = await refresh_crud.get_by_token(session, token=refresh_request.refresh_token)
+    refresh_token = await refresh_crud.get_by_token(
+        session, token=refresh_request.refresh_token
+    )
     fingerprint = refresh_request.fingerprint
 
     if not refresh_token:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token"
+        )
 
-    user = await users_crud.get_user_by_id(session=session, user_id=refresh_token.user_id)
+    user = await users_crud.get_user_by_id(
+        session=session, user_id=refresh_token.user_id
+    )
 
     await check_user_verified(user)
 
@@ -178,17 +202,22 @@ async def refresh_tokens(
 
     # Проверяем срок жизни
     if refresh_token.expire_at < datetime.now(timezone.utc).replace(tzinfo=None):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token expired")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token expired"
+        )
 
     # Проверяем fingerprint
     if fingerprint != refresh_token.fingerprint:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Fingerprint mismatch")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Fingerprint mismatch"
+        )
 
     # Создаём новую пару
     new_access = create_access_token(subject=refresh_token.user_id)
     new_refresh = create_refresh_token()
-    expire_at = (datetime.now(timezone.utc).replace(tzinfo=None) +
-                 timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES))
+    expire_at = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(
+        minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES
+    )
 
     await refresh_crud.create_token(
         session=session,
@@ -210,19 +239,20 @@ async def request_verify(
     request: Request,
     email_verification_request: EmailVerificationRequest,
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
+    background_tasks: BackgroundTasks,
 ):
-    user = await users_crud.get_user_by_email(session=session, email=email_verification_request.email)
+    user = await users_crud.get_user_by_email(
+        session=session, email=email_verification_request.email
+    )
 
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
     if user.is_verified:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Email is already verified"
+            status_code=status.HTTP_409_CONFLICT, detail="Email is already verified"
         )
 
     verification_type_id = await get_verification_type_id(
@@ -231,29 +261,32 @@ async def request_verify(
     )
 
     verification = await verifications_crud.get_verification(
-        session=session,
-        user_id=user.id,
-        verification_type_id=verification_type_id
+        session=session, user_id=user.id, verification_type_id=verification_type_id
     )
 
     if verification:
         await verifications_crud.delete_verification(
-            session=session,
-            user_id=user.id,
-            verification_type_id=verification_type_id
+            session=session, user_id=user.id, verification_type_id=verification_type_id
         )
 
     code = f"{random.randint(0, 999999):06d}"
 
-    await send_otp_email(to_email=user.email, otp_code=code, first_name=user.first_name)
+    background_tasks.add_task(
+        send_otp_email,
+        to_email=user.email,
+        otp_code=code,
+        first_name=user.first_name,
+    )
 
     await verifications_crud.create_verification(
         session=session,
         user_id=user.id,
         code=code,
         verification_type_id=verification_type_id,
-        expire_at=(datetime.now(timezone.utc).replace(tzinfo=None) +
-                   timedelta(minutes=settings.OTP_CODE_EXPIRE_MINUTES))
+        expire_at=(
+            datetime.now(timezone.utc).replace(tzinfo=None)
+            + timedelta(minutes=settings.OTP_CODE_EXPIRE_MINUTES)
+        ),
     )
 
     return None
@@ -264,18 +297,18 @@ async def verify(
     email_verification: EmailVerification,
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ):
-    user = await users_crud.get_user_by_email(session=session, email=email_verification.email)
+    user = await users_crud.get_user_by_email(
+        session=session, email=email_verification.email
+    )
 
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
     if user.is_verified:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Email is already verified"
+            status_code=status.HTTP_409_CONFLICT, detail="Email is already verified"
         )
 
     verification_type_id = await get_verification_type_id(
@@ -307,13 +340,15 @@ async def request_reset_password(
     request: Request,
     reset_password_request: PasswordResetRequest,
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
+    background_tasks: BackgroundTasks,
 ):
-    user = await users_crud.get_user_by_email(session=session, email=reset_password_request.email)
+    user = await users_crud.get_user_by_email(
+        session=session, email=reset_password_request.email
+    )
 
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
     await check_user_verified(user)
@@ -325,16 +360,23 @@ async def request_reset_password(
 
     code = f"{random.randint(0, 999999):06d}"
 
+    background_tasks.add_task(
+        send_otp_reset_password,
+        to_email=reset_password_request.email,
+        otp_code=code,
+        first_name=user.first_name,
+    )
+
     await verifications_crud.create_verification(
         session=session,
         user_id=user.id,
         code=code,
         verification_type_id=verification_type_id,
-        expire_at=(datetime.now(timezone.utc).replace(tzinfo=None) +
-                   timedelta(minutes=settings.OTP_CODE_EXPIRE_MINUTES))
+        expire_at=(
+            datetime.now(timezone.utc).replace(tzinfo=None)
+            + timedelta(minutes=settings.OTP_CODE_EXPIRE_MINUTES)
+        ),
     )
-
-    await send_otp_reset_password(to_email=reset_password_request.email, otp_code=code, first_name=user.first_name)
 
 
 @router.post("/reset-password")
@@ -342,12 +384,13 @@ async def reset_password(
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
     reset_password_verification: ResetPasswordVerification,
 ) -> dict:
-    user = await users_crud.get_user_by_email(session=session, email=reset_password_verification.email)
+    user = await users_crud.get_user_by_email(
+        session=session, email=reset_password_verification.email
+    )
 
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
     verification_type_id = await get_verification_type_id(

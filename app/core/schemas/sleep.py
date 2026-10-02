@@ -8,7 +8,9 @@ from pydantic import BaseModel, ConfigDict, field_validator, Field
 class SleepBase(BaseModel):
     sleep_duration: str = Field("00:00", description="Время сна в формате HH:MM")
     sleep_quality: int = Field(5, ge=1, le=5, description="Оценка качества сна (1–5)")
-    notes: Optional[str] = Field(None, max_length=2000, description="Заметки (до 2000 символов)")
+    notes: Optional[str] = Field(
+        None, max_length=2000, description="Заметки (до 2000 символов)"
+    )
     record_date: date
 
     @field_validator("sleep_duration")

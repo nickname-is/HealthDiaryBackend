@@ -49,13 +49,18 @@ class User(Base, TimeMixin):
     gender: Mapped[Optional[GenderEnum]] = mapped_column(Enum(GenderEnum))
     birth_date: Mapped[Optional[date]] = mapped_column(Date)
     avatar: Mapped[Optional[str]] = mapped_column(String(512))
-    is_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=false())
+    is_verified: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=false()
+    )
 
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship(
         "RefreshToken", back_populates="user", cascade="all, delete-orphan"
     )
     verifications: Mapped["Verification"] = relationship(
-        "Verification", back_populates="user", cascade="all, delete-orphan", uselist=False
+        "Verification",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        uselist=False,
     )
     activities: Mapped[list["Activity"]] = relationship(
         "Activity", back_populates="user", cascade="all, delete-orphan"
@@ -71,6 +76,6 @@ class User(Base, TimeMixin):
     )
 
     __table_args__ = (
-        CheckConstraint('height > 0', name='check_positive_height'),
-        CheckConstraint('weight > 0', name='check_positive_weight'),
+        CheckConstraint("height > 0", name="check_positive_height"),
+        CheckConstraint("weight > 0", name="check_positive_weight"),
     )

@@ -32,7 +32,7 @@ class Task(Base, TimeMixin):
         UUID(as_uuid=True),
         unique=True,
         default=uuid.uuid4,
-        server_default=text("uuid_generate_v4()")
+        server_default=text("uuid_generate_v4()"),
     )
     user_id: Mapped[int] = mapped_column(
         BigInteger,
@@ -41,12 +41,24 @@ class Task(Base, TimeMixin):
         index=True,
     )
     title: Mapped[str] = mapped_column(String(255), nullable=False)
-    all_day: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false(), nullable=False)
-    start_datetime: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    end_datetime: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    reminder_minutes: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"), nullable=False)
-    is_completed: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false(), nullable=False)
-    is_reminded: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false(), nullable=False)
+    all_day: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default=false(), nullable=False
+    )
+    start_datetime: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    end_datetime: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    reminder_minutes: Mapped[int] = mapped_column(
+        Integer, default=0, server_default=text("0"), nullable=False
+    )
+    is_completed: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default=false(), nullable=False
+    )
+    is_reminded: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default=false(), nullable=False
+    )
 
     drug: Mapped["Drug | None"] = relationship(
         "Drug",

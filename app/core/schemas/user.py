@@ -24,18 +24,18 @@ class UserBase(BaseModel):
     hips_circumference: Optional[PositiveFloat] = None
     gender: Optional[GenderEnum] = None
     birth_date: Optional[date] = None
-    avatar: Optional[str] = None
 
 
 class UserCreate(UserBase):
     password: str
+
+    model_config = ConfigDict(extra="forbid")
 
 
 class UserUpdate(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     bio: Optional[str] = None
-    email: Optional[EmailStr] = None
     password: Optional[str] = None
     height: Optional[PositiveFloat] = None
     weight: Optional[PositiveFloat] = None
@@ -44,14 +44,12 @@ class UserUpdate(BaseModel):
     hips_circumference: Optional[PositiveFloat] = None
     gender: Optional[GenderEnum] = None
     birth_date: Optional[date] = None
-    avatar: Optional[str] = None
 
-    # Строгая валидация
     model_config = ConfigDict(extra="forbid")
 
     @model_validator(mode="before")
     def forbid_null_values(cls, values):
-        forbid_null = ["first_name", "email", "password"]
+        forbid_null = ["first_name", "password"]
 
         for key, value in values.items():
             if value is None and key in forbid_null:
@@ -66,6 +64,7 @@ class UserRead(UserBase):
     )
 
     id: int
+    avatar: Optional[str]
     is_verified: bool
     created_at: datetime
     updated_at: datetime

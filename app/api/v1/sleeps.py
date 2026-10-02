@@ -24,7 +24,7 @@ log = logging.getLogger(__name__)
 router = APIRouter(tags=["Sleeps"])
 
 
-@router.get("/", response_model=SleepRead)
+@router.get("", response_model=SleepRead)
 async def read_sleep(
     user_id: int,
     _current_user: Annotated[User, Depends(check_user_permission)],
@@ -38,7 +38,9 @@ async def read_sleep(
     )
 
     if not sleep:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sleep recording not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Sleep recording not found"
+        )
     return SleepRead(
         id=sleep.id,
         guid=sleep.guid,
@@ -49,7 +51,7 @@ async def read_sleep(
     )
 
 
-@router.post("/", response_model=SleepRead, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=SleepRead, status_code=status.HTTP_201_CREATED)
 async def create_or_update_sleep(
     user_id: int,
     sleep_in: SleepUpsert,

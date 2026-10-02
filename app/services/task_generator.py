@@ -53,14 +53,14 @@ async def generate_task(session: AsyncSession, base_task: Task) -> Optional[Task
             dosage=base_task.drug.dosage,
             dosage_unit=base_task.drug.dosage_unit,
             dosage_type=base_task.drug.dosage_type,
-            task=new_task  # связываем через relationship
+            task=new_task,  # связываем через relationship
         )
         session.add(new_drug)
 
     new_repeat = TaskRepeat(
         repeat_type=repeat_task.repeat_type,
         repeat_interval=repeat_task.repeat_interval,
-        task=new_task  # связываем через relationship
+        task=new_task,  # связываем через relationship
     )
     session.add(new_repeat)
     await session.delete(repeat_task)
@@ -69,7 +69,9 @@ async def generate_task(session: AsyncSession, base_task: Task) -> Optional[Task
     await session.commit()
     await session.refresh(new_task)
 
-    return await crud_tasks.get_task(session=session, task_guid=new_task.guid, user_id=base_task.user_id)
+    return await crud_tasks.get_task(
+        session=session, task_guid=new_task.guid, user_id=base_task.user_id
+    )
 
 
 async def generate_repeated_tasks():

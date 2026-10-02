@@ -2,10 +2,7 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, PositiveFloat
 
-from core.models.drug import (
-    DosageUnitEnum,
-    DosageTypeEnum
-)
+from core.models.drug import DosageUnitEnum, DosageTypeEnum
 
 
 class DrugBase(BaseModel):

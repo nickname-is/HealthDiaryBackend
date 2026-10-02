@@ -23,7 +23,7 @@ log = logging.getLogger(__name__)
 router = APIRouter(tags=["Tasks"])
 
 
-@router.get("/", response_model=list[TaskRead])
+@router.get("", response_model=list[TaskRead])
 async def read_tasks(
     user_id: int,
     _current_user: Annotated[User, Depends(check_user_permission)],
@@ -36,7 +36,7 @@ async def read_tasks(
     return tasks
 
 
-@router.post("/", response_model=TaskRead, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=TaskRead, status_code=status.HTTP_201_CREATED)
 async def create_new_task(
     user_id: int,
     task_in: TaskCreate,
@@ -46,7 +46,9 @@ async def create_new_task(
         Depends(db_helper.session_getter),
     ],
 ):
-    task = await crud_tasks.create_task(session=session, user_id=user_id, task_in=task_in)
+    task = await crud_tasks.create_task(
+        session=session, user_id=user_id, task_in=task_in
+    )
     return task
 
 
@@ -63,7 +65,9 @@ async def update_existing_task(
 ):
     task = await crud_tasks.get_task(session, task_guid=task_guid, user_id=user_id)
     if not task:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Task not found"
+        )
 
     updated_task = await crud_tasks.update_task(session, task, task_update)
     return updated_task
@@ -81,7 +85,9 @@ async def delete_existing_task(
 ):
     task = await crud_tasks.get_task(session, task_guid=task_guid, user_id=user_id)
     if not task:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Task not found"
+        )
 
     await crud_tasks.delete_task(session, task)
     return

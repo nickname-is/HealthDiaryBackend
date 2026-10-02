@@ -29,14 +29,14 @@ class Verification(Base, TimeMixin):
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
-        unique=True
+        unique=True,
     )
     code: Mapped[str] = mapped_column(String(6), nullable=False)
     verification_type_id: Mapped[int] = mapped_column(
         BigInteger,
         ForeignKey("verification_types.id", ondelete="CASCADE"),
         nullable=False,
-        index=True
+        index=True,
     )
     attempts: Mapped[int] = mapped_column(SmallInteger, default=0, nullable=False)
     max_attempts: Mapped[int] = mapped_column(SmallInteger, default=5, nullable=False)
@@ -48,6 +48,6 @@ class Verification(Base, TimeMixin):
     )
 
     __table_args__ = (
-        CheckConstraint('attempts >= 0', name='check_attempts_positive'),
-        CheckConstraint('max_attempts > 0', name='check_max_attempts_positive'),
+        CheckConstraint("attempts >= 0", name="check_attempts_positive"),
+        CheckConstraint("max_attempts > 0", name="check_max_attempts_positive"),
     )

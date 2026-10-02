@@ -28,9 +28,7 @@ main_app.include_router(
 async def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded):
     return JSONResponse(
         status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-        content={
-            "detail": "There are too many requests. Try again later."
-        },
+        content={"detail": "There are too many requests. Try again later."},
     )
 
 

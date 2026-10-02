@@ -30,19 +30,21 @@ class WaterIntake(Base, TimeMixin):
         UUID(as_uuid=True),
         unique=True,
         default=uuid.uuid4,
-        server_default=text("uuid_generate_v4()")
+        server_default=text("uuid_generate_v4()"),
     )
     user_id: Mapped[int] = mapped_column(
-        BigInteger,
-        ForeignKey("users.id", ondelete="CASCADE"),
-        nullable=False
+        BigInteger, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     record_date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
-    intake_amount: Mapped[float] = mapped_column(Float, nullable=False, default=0.0, server_default=text("0.0"))
+    intake_amount: Mapped[float] = mapped_column(
+        Float, nullable=False, default=0.0, server_default=text("0.0")
+    )
 
     user: Mapped["User"] = relationship("User", back_populates="water_intakes")
 
     __table_args__ = (
-        CheckConstraint('intake_amount >= 0', name='check_positive_intake_amount'),
-        UniqueConstraint('user_id', 'record_date', name='uq_water_intakes_user_id_record_date'),
+        CheckConstraint("intake_amount >= 0", name="check_positive_intake_amount"),
+        UniqueConstraint(
+            "user_id", "record_date", name="uq_water_intakes_user_id_record_date"
+        ),
     )

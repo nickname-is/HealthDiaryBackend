@@ -25,12 +25,14 @@ log = logging.getLogger(__name__)
 router = APIRouter(tags=["BodyTemperatures"])
 
 
-@router.get("/", response_model=list[BodyTemperatureRead])
+@router.get("", response_model=list[BodyTemperatureRead])
 async def get_body_temperatures_for_day(
     user_id: int,
     _current_user: Annotated[User, Depends(check_user_permission)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
-    measurement_date: date = Query(..., description="Дата записи измерений температуры (YYYY-MM-DD)"),
+    measurement_date: date = Query(
+        ..., description="Дата записи измерений температуры (YYYY-MM-DD)"
+    ),
 ):
     body_temperatures = await crud_body_temp.get_body_temperatures_for_day(
         session=session,
@@ -47,7 +49,9 @@ async def get_body_temperatures_for_day(
     return body_temperatures
 
 
-@router.post("/", response_model=BodyTemperatureRead, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "", response_model=BodyTemperatureRead, status_code=status.HTTP_201_CREATED
+)
 async def create_or_update_body_temperature(
     user_id: int,
     body_temp_in: BodyTemperatureUpsert,
@@ -82,5 +86,7 @@ async def delete_body_temperature(
             detail="Body temperature measurement not found",
         )
 
-    await crud_body_temp.delete_body_temperature(session=session, body_temp=body_temperature)
+    await crud_body_temp.delete_body_temperature(
+        session=session, body_temp=body_temperature
+    )
     return

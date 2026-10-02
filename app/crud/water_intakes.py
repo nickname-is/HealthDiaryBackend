@@ -7,16 +7,20 @@ from core.models.water_intake import WaterIntake
 from core.schemas.water_intake import WaterIntakeUpsert
 
 
-async def upsert_water_intake(session: AsyncSession, user_id: int, water_intake_upsert: WaterIntakeUpsert) -> WaterIntake:
+async def upsert_water_intake(
+    session: AsyncSession, user_id: int, water_intake_upsert: WaterIntakeUpsert
+) -> WaterIntake:
     result = await session.execute(
         select(WaterIntake).where(
             WaterIntake.user_id == user_id,
-            WaterIntake.record_date == water_intake_upsert.record_date
+            WaterIntake.record_date == water_intake_upsert.record_date,
         )
     )
     water_intake = result.scalar_one_or_none()
 
-    incoming_data = water_intake_upsert.model_dump(exclude={"add_to_existing", "record_date"}, exclude_unset=True)
+    incoming_data = water_intake_upsert.model_dump(
+        exclude={"add_to_existing", "record_date"}, exclude_unset=True
+    )
 
     if water_intake:
         for field, value in incoming_data.items():
@@ -38,19 +42,24 @@ async def upsert_water_intake(session: AsyncSession, user_id: int, water_intake_
     return water_intake
 
 
-async def get_water_intake(session: AsyncSession, user_id: int, record_date) -> WaterIntake | None:
+async def get_water_intake(
+    session: AsyncSession, user_id: int, record_date
+) -> WaterIntake | None:
     result = await session.execute(
         select(WaterIntake).where(
-            WaterIntake.user_id == user_id,
-            WaterIntake.record_date == record_date
+            WaterIntake.user_id == user_id, WaterIntake.record_date == record_date
         )
     )
     return result.scalar_one_or_none()
 
 
-async def get_water_intakes(session: AsyncSession, user_id: int) -> Sequence[WaterIntake]:
+async def get_water_intakes(
+    session: AsyncSession, user_id: int
+) -> Sequence[WaterIntake]:
     result = await session.execute(
-        select(WaterIntake).where(WaterIntake.user_id == user_id).order_by(WaterIntake.record_date.desc())
+        select(WaterIntake)
+        .where(WaterIntake.user_id == user_id)
+        .order_by(WaterIntake.record_date.desc())
     )
     return result.scalars().all()
 

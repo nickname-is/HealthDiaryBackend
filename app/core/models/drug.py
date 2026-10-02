@@ -57,12 +57,16 @@ class Drug(Base):
         BigInteger,
         ForeignKey("tasks.id", ondelete="CASCADE"),
         nullable=False,
-        unique=True
+        unique=True,
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     dosage: Mapped[float] = mapped_column(Float, nullable=False)
-    dosage_unit: Mapped[DosageUnitEnum] = mapped_column(Enum(DosageUnitEnum), nullable=False)
-    dosage_type: Mapped[DosageTypeEnum] = mapped_column(Enum(DosageTypeEnum), nullable=False)
+    dosage_unit: Mapped[DosageUnitEnum] = mapped_column(
+        Enum(DosageUnitEnum), nullable=False
+    )
+    dosage_type: Mapped[DosageTypeEnum] = mapped_column(
+        Enum(DosageTypeEnum), nullable=False
+    )
 
     task: Mapped["Task"] = relationship(
         "Task",
@@ -70,6 +74,4 @@ class Drug(Base):
         uselist=False,
     )
 
-    __table_args__ = (
-        CheckConstraint('dosage > 0', name='check_positive_dosage'),
-    )
+    __table_args__ = (CheckConstraint("dosage > 0", name="check_positive_dosage"),)

@@ -10,14 +10,13 @@ from core.schemas.body_temperature import BodyTemperatureUpsert
 
 
 async def get_body_temperature(
-    session: AsyncSession,
-    user_id: int,
-    record_datetime: datetime
+    session: AsyncSession, user_id: int, record_datetime: datetime
 ) -> Optional[BodyTemperature]:
     result = await session.scalars(
         select(BodyTemperature).where(
             BodyTemperature.user_id == user_id,
-            BodyTemperature.record_datetime == record_datetime.replace(second=0, microsecond=0),
+            BodyTemperature.record_datetime
+            == record_datetime.replace(second=0, microsecond=0),
         )
     )
 
@@ -85,6 +84,8 @@ async def upsert_body_temperature(
     return body_temp
 
 
-async def delete_body_temperature(session: AsyncSession, body_temp: BodyTemperature) -> None:
+async def delete_body_temperature(
+    session: AsyncSession, body_temp: BodyTemperature
+) -> None:
     await session.delete(body_temp)
     await session.commit()

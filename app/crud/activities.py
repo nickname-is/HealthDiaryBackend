@@ -7,16 +7,20 @@ from core.models.activity import Activity
 from core.schemas.activity import ActivityUpsert
 
 
-async def upsert_activity(session: AsyncSession, user_id: int, activity_upsert: ActivityUpsert) -> Activity:
+async def upsert_activity(
+    session: AsyncSession, user_id: int, activity_upsert: ActivityUpsert
+) -> Activity:
     result = await session.execute(
         select(Activity).where(
             Activity.user_id == user_id,
-            Activity.record_date == activity_upsert.record_date
+            Activity.record_date == activity_upsert.record_date,
         )
     )
     activity = result.scalar_one_or_none()
 
-    incoming_data = activity_upsert.model_dump(exclude={"add_to_existing", "record_date"}, exclude_unset=True)
+    incoming_data = activity_upsert.model_dump(
+        exclude={"add_to_existing", "record_date"}, exclude_unset=True
+    )
 
     if activity:
         for field, value in incoming_data.items():
@@ -41,11 +45,12 @@ async def upsert_activity(session: AsyncSession, user_id: int, activity_upsert: 
     return activity
 
 
-async def get_activity(session: AsyncSession, user_id: int, record_date) -> Activity | None:
+async def get_activity(
+    session: AsyncSession, user_id: int, record_date
+) -> Activity | None:
     result = await session.execute(
         select(Activity).where(
-            Activity.user_id == user_id,
-            Activity.record_date == record_date
+            Activity.user_id == user_id, Activity.record_date == record_date
         )
     )
     return result.scalar_one_or_none()
@@ -53,7 +58,9 @@ async def get_activity(session: AsyncSession, user_id: int, record_date) -> Acti
 
 async def get_activities(session: AsyncSession, user_id: int) -> Sequence[Activity]:
     result = await session.execute(
-        select(Activity).where(Activity.user_id == user_id).order_by(Activity.record_date.desc())
+        select(Activity)
+        .where(Activity.user_id == user_id)
+        .order_by(Activity.record_date.desc())
     )
     return result.scalars().all()
 

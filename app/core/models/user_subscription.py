@@ -27,7 +27,9 @@ class UserSubscription(Base, TimeMixin):
         ForeignKey("subscription_plans.id", ondelete="CASCADE"),
         nullable=False,
     )
-    start_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    start_date: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
     end_date: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
 
     subscription_plan: Mapped["SubscriptionPlan"] = relationship(
@@ -37,7 +39,7 @@ class UserSubscription(Base, TimeMixin):
     __table_args__ = (
         CheckConstraint(
             "end_date IS NULL OR end_date >= start_date",
-            name="check_end_date_after_start_date"
+            name="check_end_date_after_start_date",
         ),
     )
 

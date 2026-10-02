@@ -33,23 +33,25 @@ class BodyTemperature(Base, TimeMixin):
         server_default=text("uuid_generate_v4()"),
     )
     user_id: Mapped[int] = mapped_column(
-        BigInteger,
-        ForeignKey("users.id"),
-        nullable=False,
-        index=True
+        BigInteger, ForeignKey("users.id"), nullable=False, index=True
     )
     record_datetime: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        nullable=False,
-        index=True
+        DateTime(timezone=True), nullable=False, index=True
     )
     temperature_c: Mapped[float] = mapped_column(Float, nullable=False)
 
     user: Mapped["User"] = relationship("User", back_populates="body_temperatures")
 
     __table_args__ = (
-        CheckConstraint("temperature_c >= 13.0 AND temperature_c <= 47.0", name="check_temperature_range"),
-        UniqueConstraint('user_id', 'record_datetime', name='uq_body_temperatures_user_id_record_datetime'),
+        CheckConstraint(
+            "temperature_c >= 13.0 AND temperature_c <= 47.0",
+            name="check_temperature_range",
+        ),
+        UniqueConstraint(
+            "user_id",
+            "record_datetime",
+            name="uq_body_temperatures_user_id_record_datetime",
+        ),
     )
 
 

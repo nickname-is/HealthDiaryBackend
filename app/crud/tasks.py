@@ -32,11 +32,14 @@ async def create_task(session: AsyncSession, user_id: int, task_in: TaskCreate) 
             task_in.end_datetime.date(), time.max
         )
 
-    if (task_data["start_datetime"] and task_data["end_datetime"] and
-            task_data["end_datetime"] < task_data["start_datetime"]):
+    if (
+        task_data["start_datetime"]
+        and task_data["end_datetime"]
+        and task_data["end_datetime"] < task_data["start_datetime"]
+    ):
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail="The end date must be after the start date."
+            detail="The end date must be after the start date.",
         )
 
     task = Task(**task_data)
@@ -61,7 +64,9 @@ async def create_task(session: AsyncSession, user_id: int, task_in: TaskCreate) 
     return task
 
 
-async def get_task(session: AsyncSession, task_guid: uuid.UUID, user_id: int) -> Optional[Task]:
+async def get_task(
+    session: AsyncSession, task_guid: uuid.UUID, user_id: int
+) -> Optional[Task]:
     statement = (
         select(Task)
         .where(Task.guid == task_guid, Task.user_id == user_id)
@@ -81,26 +86,30 @@ async def get_tasks(session: AsyncSession, user_id: int) -> Sequence[Task]:
     return result.all()
 
 
-async def update_task(session: AsyncSession, task: Task, task_update: TaskUpdate) -> Task:
+async def update_task(
+    session: AsyncSession, task: Task, task_update: TaskUpdate
+) -> Task:
     update_data = task_update.model_dump(exclude_unset=True)
-    simple_fields = {k: v for k, v in update_data.items() if k not in ("drug", "repeat")}
+    simple_fields = {
+        k: v for k, v in update_data.items() if k not in ("drug", "repeat")
+    }
 
     for field, value in simple_fields.items():
         if field in update_data:
             setattr(task, field, update_data[field])
 
     if "all_day" in simple_fields and simple_fields["all_day"]:
-        task.start_datetime = datetime.combine(
-            task.start_datetime.date(), time.min
-        )
-        task.end_datetime = datetime.combine(
-            task.end_datetime.date(), time.max
-        )
+        task.start_datetime = datetime.combine(task.start_datetime.date(), time.min)
+        task.end_datetime = datetime.combine(task.end_datetime.date(), time.max)
 
-    if task.start_datetime and task.end_datetime and task.end_datetime < task.start_datetime:
+    if (
+        task.start_datetime
+        and task.end_datetime
+        and task.end_datetime < task.start_datetime
+    ):
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail="The end date must be after the start date."
+            detail="The end date must be after the start date.",
         )
 
     if "drug" in update_data:
