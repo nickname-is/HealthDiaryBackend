@@ -1,4 +1,81 @@
+[project]
+name = "healthdiarybackend"
+version = "0.1.0"
+description = "Health Diary backend API"
+requires-python = ">=3.14,<4.0"
+
+[tool.poetry]
+package-mode = false
+
+[tool.poetry.dependencies]
+fastapi = "^0.142.2"
+uvicorn = "^0.54.0"
+sqlalchemy = "~2.0.54"
+asyncpg = "^0.31.0"
+alembic = "^1.20.0"
+pydantic = "^2.13.5"
+pydantic-settings = "^2.15.0"
+email-validator = "^2.3.0"
+orjson = "^3.12.0"
+python-multipart = "^0.0.32"
+aiofiles = "^25.1.0"
+aiosmtplib = "^5.1.3"
+apscheduler = "^3.11.3"
+bcrypt = "^5.0.0"
+pyjwt = "^2.15.1"
+jinja2 = "^3.1.6"
+pillow = "^12.3.0"
+slowapi = "^0.1.10"
+python-dateutil = "^2.9.0"
+redis = "^8.1.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^9.1.1"
+pytest-asyncio = "^1.4.0"
+httpx = "^0.28.1"
+mypy = "^2.4.0"
+ruff = "^0.16.10"
+types-aiofiles = "^25.1.0"
+types-python-dateutil = "^2.9.0"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
 [tool.ruff]
-target-version = "py312"
+target-version = "py314"
 line-length = 88
 extend-exclude = ["app/alembic/versions"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "C90", # mccabe complexity
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+]
+ignore = [
+    "E501",  # line too long
+    "B008",  # function calls in argument defaults (FastAPI Depends)
+]
+
+[tool.mypy]
+python_version = "3.14"
+exclude = "app/alembic/versions"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+explicit_package_bases = true
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = [
+    "slowapi.*",
+    "aiosmtplib.*",
+    "apscheduler.*"
+]
+ignore_missing_imports = true
