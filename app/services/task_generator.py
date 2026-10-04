@@ -1,20 +1,21 @@
-from typing import Optional
-from datetime import timezone, datetime
-from dateutil.relativedelta import relativedelta
 import uuid
+from datetime import UTC, datetime
 
-from sqlalchemy.ext.asyncio import AsyncSession
+from dateutil.relativedelta import relativedelta
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from core.models import db_helper
-from core.models.task_repeat import RepeatTypeEnum, TaskRepeat
-from core.models.task import Task
-from core.models.drug import Drug
-from crud import tasks as crud_tasks
+from app.core.models import db_helper
+from app.core.models.drug import Drug
+from app.core.models.task import Task
+from app.core.models.task_repeat import RepeatTypeEnum, TaskRepeat
+from app.crud.tasks import tasks_crud
+
+TASKS_BATCH_SIZE = 100
 
 
-async def generate_task(session: AsyncSession, base_task: Task) -> Optional[Task]:
+async def generate_task(session: AsyncSession, base_task: Task) -> Task | None:
     repeat_task = base_task.repeat
 
     if not repeat_task:
@@ -34,7 +35,7 @@ async def generate_task(session: AsyncSession, base_task: Task) -> Optional[Task
     new_start_datetime = base_task.start_datetime + delta
     new_end_datetime = base_task.end_datetime + delta
 
-    is_reminded = new_start_datetime < datetime.now(timezone.utc)
+    is_reminded = new_start_datetime < datetime.now(UTC)
     new_task = Task(
         guid=uuid.uuid4(),
         user_id=base_task.user_id,
@@ -66,24 +67,30 @@ async def generate_task(session: AsyncSession, base_task: Task) -> Optional[Task
     await session.delete(repeat_task)
 
     session.add(new_task)
-    await session.commit()
+    await session.flush()
     await session.refresh(new_task)
 
-    return await crud_tasks.get_task(
+    return await tasks_crud.get_task(
         session=session, task_guid=new_task.guid, user_id=base_task.user_id
     )
 
 
-async def generate_repeated_tasks():
+async def generate_repeated_tasks() -> None:
     async with db_helper.session_factory() as session:
-        # Выбираем все задачи, у которых есть повторение и срок начала <= текущего времени
-        result = await session.execute(
-            select(Task)
-            .join(TaskRepeat)
-            .options(selectinload(Task.drug), selectinload(Task.repeat))
-            .where(Task.start_datetime <= datetime.now(timezone.utc))
-        )
-        tasks = result.scalars().all()
+        while True:
+            result = await session.execute(
+                select(Task)
+                .join(TaskRepeat)
+                .options(selectinload(Task.drug), selectinload(Task.repeat))
+                .where(Task.start_datetime <= datetime.now(UTC))
+                .limit(TASKS_BATCH_SIZE)
+            )
+            tasks = result.scalars().all()
 
-        for task in tasks:
-            await generate_task(session=session, base_task=task)
+            if not tasks:
+                break
+
+            for task in tasks:
+                await generate_task(session=session, base_task=task)
+
+            await session.commit()
