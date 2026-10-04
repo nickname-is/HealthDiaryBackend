@@ -1,22 +1,21 @@
-from typing import TYPE_CHECKING
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
-from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import (
-    BigInteger,
     UUID,
-    text,
-    ForeignKey,
+    BigInteger,
+    CheckConstraint,
     DateTime,
     Float,
-    CheckConstraint,
+    ForeignKey,
     UniqueConstraint,
-    event,
+    text,
 )
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from core.models.base import Base
-from core.models.mixins.time_mixin import TimeMixin
+from app.core.models.base import Base
+from app.core.models.mixins.time_mixin import TimeMixin
 
 if TYPE_CHECKING:
     from .user import User
@@ -30,7 +29,7 @@ class BodyTemperature(Base, TimeMixin):
         UUID(as_uuid=True),
         unique=True,
         default=uuid.uuid4,
-        server_default=text("uuid_generate_v4()"),
+        server_default=text("gen_random_uuid()"),
     )
     user_id: Mapped[int] = mapped_column(
         BigInteger, ForeignKey("users.id"), nullable=False, index=True
@@ -40,7 +39,7 @@ class BodyTemperature(Base, TimeMixin):
     )
     temperature_c: Mapped[float] = mapped_column(Float, nullable=False)
 
-    user: Mapped["User"] = relationship("User", back_populates="body_temperatures")
+    user: Mapped[User] = relationship("User", back_populates="body_temperatures")
 
     __table_args__ = (
         CheckConstraint(
@@ -53,10 +52,3 @@ class BodyTemperature(Base, TimeMixin):
             name="uq_body_temperatures_user_id_record_datetime",
         ),
     )
-
-
-@event.listens_for(BodyTemperature, "before_insert")
-def receive_before_insert(mapper, connection, target):
-    if target.record_datetime:
-        # Округляем время до минут (удаляем секунды и микросекунды)
-        target.record_datetime = target.record_datetime.replace(second=0, microsecond=0)

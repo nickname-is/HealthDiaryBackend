@@ -1,12 +1,12 @@
-from typing import Optional, TYPE_CHECKING
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
-from sqlalchemy import BigInteger, DateTime, ForeignKey, func, CheckConstraint
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import BigInteger, CheckConstraint, DateTime, ForeignKey, func
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .mixins.time_mixin import TimeMixin
 from .base import Base
+from .mixins.time_mixin import TimeMixin
 
 if TYPE_CHECKING:
     from .subscription_plan import SubscriptionPlan
@@ -30,9 +30,9 @@ class UserSubscription(Base, TimeMixin):
     start_date: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
-    end_date: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    end_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
-    subscription_plan: Mapped["SubscriptionPlan"] = relationship(
+    subscription_plan: Mapped[SubscriptionPlan] = relationship(
         "SubscriptionPlan", back_populates="user_subscription"
     )
 
@@ -45,4 +45,4 @@ class UserSubscription(Base, TimeMixin):
 
     @hybrid_property
     def is_active(self) -> bool:
-        return self.end_date is None or self.end_date >= datetime.now(tz=timezone.utc)
+        return self.end_date is None or self.end_date >= datetime.now(tz=UTC)

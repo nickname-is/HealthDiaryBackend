@@ -1,19 +1,19 @@
 import uuid
-from typing import Optional, TYPE_CHECKING
-
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import (
-    BigInteger,
-    Text,
-    ForeignKey,
-    Date,
-    UUID,
-    text,
-    SmallInteger,
-    CheckConstraint,
-    UniqueConstraint,
-)
 from datetime import date
+from typing import TYPE_CHECKING
+
+from sqlalchemy import (
+    UUID,
+    BigInteger,
+    CheckConstraint,
+    Date,
+    ForeignKey,
+    SmallInteger,
+    Text,
+    UniqueConstraint,
+    text,
+)
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 from .mixins.time_mixin import TimeMixin
@@ -30,7 +30,7 @@ class Sleep(Base, TimeMixin):
         UUID(as_uuid=True),
         unique=True,
         default=uuid.uuid4,
-        server_default=text("uuid_generate_v4()"),
+        server_default=text("gen_random_uuid()"),
     )
     user_id: Mapped[int] = mapped_column(
         BigInteger, ForeignKey("users.id"), nullable=False, index=True
@@ -42,9 +42,9 @@ class Sleep(Base, TimeMixin):
     sleep_quality: Mapped[int] = mapped_column(
         SmallInteger, nullable=False, default=5, server_default=text("5")
     )
-    notes: Mapped[Optional[str]] = mapped_column(Text)
+    notes: Mapped[str | None] = mapped_column(Text)
 
-    user: Mapped["User"] = relationship("User", back_populates="sleeps")
+    user: Mapped[User] = relationship("User", back_populates="sleeps")
 
     __table_args__ = (
         CheckConstraint(

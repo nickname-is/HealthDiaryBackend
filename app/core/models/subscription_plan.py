@@ -1,10 +1,10 @@
 from typing import TYPE_CHECKING
 
-from sqlalchemy import BigInteger, String, Integer, text, CheckConstraint
+from sqlalchemy import BigInteger, CheckConstraint, Integer, String, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .mixins.time_mixin import TimeMixin
 from .base import Base
+from .mixins.time_mixin import TimeMixin
 
 if TYPE_CHECKING:
     from .user_subscription import UserSubscription
@@ -18,7 +18,7 @@ class SubscriptionPlan(Base, TimeMixin):
     slug: Mapped[str] = mapped_column(String(64), unique=True)
     price_rub: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"))
 
-    user_subscription: Mapped["UserSubscription"] = relationship(
+    user_subscription: Mapped[UserSubscription] = relationship(
         "UserSubscription", back_populates="subscription_plan", cascade="all, delete"
     )
 

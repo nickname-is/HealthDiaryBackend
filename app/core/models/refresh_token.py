@@ -1,8 +1,8 @@
-from typing import Optional, TYPE_CHECKING
-
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import BigInteger, String, ForeignKey, DateTime
 from datetime import datetime
+from typing import TYPE_CHECKING
+
+from sqlalchemy import BigInteger, DateTime, ForeignKey, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 from .mixins.time_mixin import TimeMixin
@@ -25,6 +25,6 @@ class RefreshToken(Base, TimeMixin):
 
     token: Mapped[str] = mapped_column(String(512), unique=True, nullable=False)
     expire_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
-    fingerprint: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    fingerprint: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
-    user: Mapped["User"] = relationship("User", back_populates="refresh_tokens")
+    user: Mapped[User] = relationship("User", back_populates="refresh_tokens")

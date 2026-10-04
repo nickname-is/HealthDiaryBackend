@@ -1,8 +1,8 @@
 from enum import Enum as PythonEnum
 from typing import TYPE_CHECKING
 
+from sqlalchemy import BigInteger, CheckConstraint, Enum, ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import BigInteger, Enum, Integer, CheckConstraint, ForeignKey
 
 from .base import Base
 
@@ -32,7 +32,7 @@ class TaskRepeat(Base):
     )
     repeat_interval: Mapped[int] = mapped_column(Integer, nullable=False)
 
-    task: Mapped["Task"] = relationship(
+    task: Mapped[Task] = relationship(
         "Task",
         back_populates="repeat",
         uselist=False,

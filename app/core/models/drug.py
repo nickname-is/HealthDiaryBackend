@@ -1,18 +1,17 @@
-from typing import TYPE_CHECKING
-
-from sqlalchemy.orm import Mapped, mapped_column, relationship
 from enum import Enum as PythonEnum
-
-from .base import Base
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     BigInteger,
+    CheckConstraint,
     Enum,
     Float,
-    String,
-    CheckConstraint,
     ForeignKey,
+    String,
 )
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from .base import Base
 
 if TYPE_CHECKING:
     from .task import Task
@@ -68,7 +67,7 @@ class Drug(Base):
         Enum(DosageTypeEnum), nullable=False
     )
 
-    task: Mapped["Task"] = relationship(
+    task: Mapped[Task] = relationship(
         "Task",
         back_populates="drug",
         uselist=False,

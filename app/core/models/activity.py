@@ -1,23 +1,22 @@
 import uuid
 from datetime import date
-
-from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING
+
+from sqlalchemy import (
+    UUID,
+    BigInteger,
+    CheckConstraint,
+    Date,
+    Float,
+    ForeignKey,
+    Integer,
+    UniqueConstraint,
+    text,
+)
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 from .mixins.time_mixin import TimeMixin
-
-from sqlalchemy import (
-    BigInteger,
-    Float,
-    UUID,
-    Date,
-    text,
-    Integer,
-    CheckConstraint,
-    ForeignKey,
-    UniqueConstraint,
-)
 
 if TYPE_CHECKING:
     from .user import User
@@ -31,7 +30,7 @@ class Activity(Base, TimeMixin):
         UUID(as_uuid=True),
         unique=True,
         default=uuid.uuid4,
-        server_default=text("uuid_generate_v4()"),
+        server_default=text("gen_random_uuid()"),
     )
     user_id: Mapped[int] = mapped_column(
         BigInteger, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
@@ -48,7 +47,7 @@ class Activity(Base, TimeMixin):
         Float, default=0.0, server_default=text("0.0")
     )
 
-    user: Mapped["User"] = relationship("User", back_populates="activities")
+    user: Mapped[User] = relationship("User", back_populates="activities")
 
     __table_args__ = (
         CheckConstraint("steps >= 0", name="check_positive_steps"),
