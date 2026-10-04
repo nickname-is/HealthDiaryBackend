@@ -11,38 +11,64 @@ services:
       - RUNNING_IN_DOCKER=1
     command: python app/main.py
     ports:
-      - "80:8000"
+      - "8000:8000"
     volumes:
       - .:/healthdiarybackend
       - media_volume:/healthdiarybackend/media
     depends_on:
       db:
         condition: service_healthy  # Ждём, пока Postgres не станет "healthy"
+      redis:
+        condition: service_healthy
 
   db:
-    image: postgres:15.4
+    image: postgres:18.0
     container_name: healthdiarydb
     env_file:
       - app/.env
-    environment:
-      PGDATA: /var/lib/postgresql/data
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       timeout: 5s
       retries: 5
 
-  pgadmin:
-    image: dpage/pgadmin4:9.8
-    env_file:
-      - app/.env
+  db-test:
+    image: postgres:18.0
+    container_name: healthdiarydb-test
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: healthdiary_test
     ports:
-      - "5050:80"
+      - "5433:5432"
+    volumes:
+      - pgdata_test:/var/lib/postgresql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes --appendfsync everysec --aof-use-rdb-preamble yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
 
 volumes:
   pgdata:
+  pgdata_test:
+  redis_data:
   media_volume:

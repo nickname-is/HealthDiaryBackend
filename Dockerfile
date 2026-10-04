@@ -1,17 +1,20 @@
-FROM python:3.12.3-bookworm
+FROM python:3.14.2-slim
 
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
+ENV POETRY_VIRTUALENVS_CREATE=false
+ENV PIP_NO_CACHE_DIR=1
 
 WORKDIR /healthdiarybackend
 
-ENV PYTHONPATH=/healthdiarybackend/app:$PYTHONPATH
+ENV PYTHONPATH=/healthdiarybackend
 
 RUN pip install --upgrade pip wheel
+RUN pip install poetry==2.5.1
 
-COPY requirements.txt ./requirements.txt
+COPY pyproject.toml poetry.lock ./
 
-RUN pip install -r requirements.txt
+RUN poetry install --only main --no-interaction --no-ansi
 
 COPY . .
 
