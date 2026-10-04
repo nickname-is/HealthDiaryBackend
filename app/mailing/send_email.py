@@ -3,9 +3,7 @@ from email.message import EmailMessage
 from pathlib import Path
 
 from aiosmtplib import SMTP, SMTPResponseException
-
 from jinja2 import Environment, FileSystemLoader
-
 
 SMTP_HOST = "smtp.gmail.com"
 SMTP_PORT = 587
@@ -24,6 +22,9 @@ template_reset_password_otp = env.get_template(
 
 
 async def send_email(message: EmailMessage) -> None:
+    if not SMTP_HOST or not SMTP_PORT or not SMTP_USER or not SMTP_PASS:
+        raise ValueError("Missing required environment variables")
+
     smtp = SMTP(hostname=SMTP_HOST, port=SMTP_PORT, start_tls=True)
 
     try:
