@@ -1,16 +1,22 @@
-from uuid import UUID
 from datetime import date
-from typing import Optional
+from typing import Self
+from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    ValidationInfo,
+    field_validator,
+    model_validator,
+)
 
 
 class WaterIntakeBase(BaseModel):
-    intake_amount: Optional[float] = 0.0
+    intake_amount: float | None = 0.0
 
     @field_validator("intake_amount")
     @classmethod
-    def non_negative(cls, v, field):
+    def non_negative(cls, v: float, field: ValidationInfo) -> float | None:
         if v is not None and v < 0:
             raise ValueError(f"{field.field_name} cannot be negative")
         return v
@@ -28,6 +34,13 @@ class WaterIntakeUpsert(WaterIntakeBase):
     record_date: date
     add_to_existing: bool = False
 
+    @model_validator(mode="after")
+    def require_at_least_one_value(self) -> Self:
+        if "intake_amount" not in self.model_fields_set:
+            raise ValueError("intake_amount must be provided")
+
+        return self
+
 
 class WaterIntakeRead(WaterIntakeBase):
     model_config = ConfigDict(
@@ -35,5 +48,5 @@ class WaterIntakeRead(WaterIntakeBase):
     )
 
     record_date: date
-    id: Optional[int] = None
-    guid: Optional[UUID] = None
+    id: int | None = None
+    guid: UUID | None = None

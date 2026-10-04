@@ -1,7 +1,7 @@
-from uuid import UUID
 from datetime import datetime
+from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class BodyTemperatureBase(BaseModel):
@@ -11,6 +11,12 @@ class BodyTemperatureBase(BaseModel):
     record_datetime: datetime = Field(
         ..., description="Дата и время измерения (ISO формат)"
     )
+
+    @field_validator("record_datetime", mode="after")
+    @classmethod
+    def round_to_minutes(cls, v: datetime) -> datetime:
+        # Округляем время до минут (удаляем секунды и микросекунды)
+        return v.replace(second=0, microsecond=0)
 
 
 class BodyTemperatureUpsert(BodyTemperatureBase):
