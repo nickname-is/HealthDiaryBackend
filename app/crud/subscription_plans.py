@@ -1,22 +1,12 @@
-from typing import Optional, Sequence
-
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-
-from core.models.subscription_plan import SubscriptionPlan
+from app.core.models.subscription_plan import SubscriptionPlan
+from app.core.schemas.subscription_plan import SubscriptionPlanRead
+from app.crud.base import CRUDBase
 
 
-async def get_all_plans(session: AsyncSession) -> Sequence[SubscriptionPlan]:
-    result = await session.scalars(select(SubscriptionPlan))
+class CRUDSubscriptionPlan(
+    CRUDBase[SubscriptionPlan, SubscriptionPlanRead, SubscriptionPlanRead]
+):
+    pass
 
-    return result.all()
 
-
-async def get_plan_by_id(
-    session: AsyncSession, plan_id: int
-) -> Optional[SubscriptionPlan]:
-    result = await session.scalars(
-        select(SubscriptionPlan).where(SubscriptionPlan.id == plan_id)
-    )
-
-    return result.first()
+subscription_plans_crud = CRUDSubscriptionPlan(SubscriptionPlan)
