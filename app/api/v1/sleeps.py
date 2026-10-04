@@ -1,6 +1,6 @@
 import logging
-from typing import Annotated
 from datetime import date
+from typing import Annotated
 
 from fastapi import (
     APIRouter,
@@ -8,17 +8,14 @@ from fastapi import (
     HTTPException,
     Query,
 )
+from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from api.deps import check_user_permission
-from core.models import db_helper
-from core.models.user import User
-from core.schemas.sleep import SleepRead, SleepUpsert
-
-import crud.sleeps as crud_sleeps
-
+from app.api.deps import check_user_permission
+from app.core.models import db_helper
+from app.core.models.user import User
+from app.core.schemas.sleep import SleepRead, SleepUpsert
+from app.crud.sleeps import sleeps_crud
 
 log = logging.getLogger(__name__)
 router = APIRouter(tags=["Sleeps"])
@@ -30,8 +27,8 @@ async def read_sleep(
     _current_user: Annotated[User, Depends(check_user_permission)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
     record_date: date = Query(..., description="Дата записи сна (YYYY-MM-DD)"),
-):
-    sleep = await crud_sleeps.get_sleep(
+) -> SleepRead:
+    sleep = await sleeps_crud.get_sleep(
         session=session,
         user_id=user_id,
         record_date=record_date,
@@ -57,8 +54,8 @@ async def create_or_update_sleep(
     sleep_in: SleepUpsert,
     _current_user: Annotated[User, Depends(check_user_permission)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
-):
-    sleep = await crud_sleeps.upsert_sleep(
+) -> SleepRead:
+    sleep = await sleeps_crud.upsert_sleep(
         session=session,
         user_id=user_id,
         sleep_in=sleep_in,

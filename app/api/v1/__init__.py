@@ -1,16 +1,15 @@
 from fastapi import APIRouter
 
-from core.config import settings
+from app.core.config import settings
 
-from .users import router as users_router
-from .auth import router as auth_router
-from .tasks import router as tasks_router
 from .activities import router as activities_router
-from .water_intakes import router as water_intakes_router
-from .sleeps import router as sleeps_router
+from .auth import router as auth_router
 from .body_temperatures import router as body_temperatures_router
+from .sleeps import router as sleeps_router
 from .subscriptions import router as subscriptions_router
-
+from .tasks import router as tasks_router
+from .users import router as users_router
+from .water_intakes import router as water_intakes_router
 
 router = APIRouter(
     prefix=settings.api.v1.prefix,

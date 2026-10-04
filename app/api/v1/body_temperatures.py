@@ -1,25 +1,23 @@
 import logging
 import uuid
+from collections.abc import Sequence
 from datetime import date
 from typing import Annotated
 
 from fastapi import (
     APIRouter,
     Depends,
-    Query,
     HTTPException,
+    Query,
 )
+from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from api.deps import check_user_permission
-from core.models import db_helper
-from core.models.user import User
-from core.schemas.body_temperature import BodyTemperatureRead, BodyTemperatureUpsert
-
-import crud.body_temperatures as crud_body_temp
-
+from app.api.deps import check_user_permission
+from app.core.models import BodyTemperature, db_helper
+from app.core.models.user import User
+from app.core.schemas.body_temperature import BodyTemperatureRead, BodyTemperatureUpsert
+from app.crud.body_temperatures import body_temperatures_crud
 
 log = logging.getLogger(__name__)
 router = APIRouter(tags=["BodyTemperatures"])
@@ -33,8 +31,8 @@ async def get_body_temperatures_for_day(
     measurement_date: date = Query(
         ..., description="Дата записи измерений температуры (YYYY-MM-DD)"
     ),
-):
-    body_temperatures = await crud_body_temp.get_body_temperatures_for_day(
+) -> Sequence[BodyTemperature]:
+    body_temperatures = await body_temperatures_crud.get_body_temperatures_for_day(
         session=session,
         user_id=user_id,
         measurement_date=measurement_date,
@@ -57,8 +55,8 @@ async def create_or_update_body_temperature(
     body_temp_in: BodyTemperatureUpsert,
     _current_user: Annotated[User, Depends(check_user_permission)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
-):
-    body_temperature = await crud_body_temp.upsert_body_temperature(
+) -> BodyTemperature:
+    body_temperature = await body_temperatures_crud.upsert_body_temperature(
         session=session,
         user_id=user_id,
         body_temp_in=body_temp_in,
@@ -73,8 +71,8 @@ async def delete_body_temperature(
     body_temp_guid: uuid.UUID,
     _current_user: Annotated[User, Depends(check_user_permission)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
-):
-    body_temperature = await crud_body_temp.get_body_temperature_by_guid(
+) -> None:
+    body_temperature = await body_temperatures_crud.get_body_temperature_by_guid(
         session=session,
         guid=body_temp_guid,
         user_id=user_id,
@@ -86,7 +84,5 @@ async def delete_body_temperature(
             detail="Body temperature measurement not found",
         )
 
-    await crud_body_temp.delete_body_temperature(
-        session=session, body_temp=body_temperature
-    )
+    await body_temperatures_crud.delete(session=session, db_obj=body_temperature)
     return

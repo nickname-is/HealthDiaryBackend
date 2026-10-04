@@ -1,22 +1,17 @@
 from typing import Annotated
 
 import jwt
-from jwt.exceptions import InvalidTokenError
-
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-
+from jwt.exceptions import InvalidTokenError
 from pydantic import ValidationError
-
-from core import security
-from core.config import settings
-from core.models import db_helper, User
-from core.schemas.token import TokenPayload
-
-from crud import users as users_crud
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core import security
+from app.core.config import settings
+from app.core.models import User, db_helper
+from app.core.schemas.token import TokenPayload
+from app.crud.users import users_crud
 
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl=f"{settings.api.prefix}{settings.api.v1.prefix}{settings.api.v1.auth}/login"
@@ -41,9 +36,9 @@ async def get_current_user(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=f"Could not validate credentials: {error}",
-        )
+        ) from error
 
-    user = await users_crud.get_user_by_id(session=session, user_id=token_data.sub)
+    user = await users_crud.get(session=session, id=token_data.sub)
 
     if not user:
         raise HTTPException(
