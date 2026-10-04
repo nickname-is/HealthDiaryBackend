@@ -1,7 +1,8 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import BaseModel, PostgresDsn
-
 import os
+from pathlib import Path
+
+from pydantic import BaseModel, PostgresDsn
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class ApiV1Prefix(BaseModel):
@@ -42,6 +43,26 @@ class DatabaseConfig(BaseModel):
     }
 
 
+class RedisConfig(BaseModel):
+    url: str = "redis://localhost:6379/0"
+    otp_code_key: str = "otp:code:{verification_type}:{user_id}"
+    otp_attempts_key: str = "otp:attempts:{verification_type}:{user_id}"
+    otp_max_attempts: int = 5
+
+
+class MediaConfig(BaseModel):
+    media_root: Path = Path("media")
+    user_media: Path = media_root / "users"
+    max_avatar_size: int = 5 * 1024 * 1024  # 5 MB
+
+    allowed_image_types: dict[str, str] = {
+        "jpeg": "jpg",
+        "png": "png",
+        "gif": "gif",
+        "webp": "webp",
+    }
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -54,6 +75,8 @@ class Settings(BaseSettings):
     run: RunConfig = RunConfig()
     db: DatabaseConfig
     api: ApiPrefix = ApiPrefix()
+    media: MediaConfig = MediaConfig()
+    redis: RedisConfig = RedisConfig()
 
     SECRET_KEY: str
 
@@ -72,4 +95,5 @@ settings = Settings()
 
 if os.getenv("RUNNING_IN_DOCKER") == "1":
     db_url = f"postgresql+asyncpg://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@db:5432/{os.getenv('POSTGRES_DB')}"
-    settings.db.url = db_url
+    settings.db.url = PostgresDsn(db_url)
+    settings.redis.url = "redis://redis:6379/0"
