@@ -1,8 +1,8 @@
 from datetime import datetime
-from typing import Optional
+
 from pydantic import BaseModel, ConfigDict
 
-from core.schemas.subscription_plan import SubscriptionPlanRead
+from app.core.schemas.subscription_plan import SubscriptionPlanRead
 
 
 class UserSubscriptionBase(BaseModel):
@@ -17,5 +17,5 @@ class UserSubscriptionRead(BaseModel):
     id: int
     subscription_plan: SubscriptionPlanRead
     start_date: datetime
-    end_date: Optional[datetime]
+    end_date: datetime | None
     is_active: bool

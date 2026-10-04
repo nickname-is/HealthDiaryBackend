@@ -1,8 +1,7 @@
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, PositiveFloat
 
-from core.models.drug import DosageUnitEnum, DosageTypeEnum
+from app.core.models.drug import DosageTypeEnum, DosageUnitEnum
 
 
 class DrugBase(BaseModel):
@@ -25,10 +24,10 @@ class DrugRead(DrugBase):
 
 
 class DrugUpdate(BaseModel):
-    name: Optional[str] = None
-    dosage: Optional[PositiveFloat] = None
-    dosage_unit: Optional[DosageUnitEnum] = None
-    dosage_type: Optional[DosageTypeEnum] = None
+    name: str | None = None
+    dosage: PositiveFloat | None = None
+    dosage_unit: DosageUnitEnum | None = None
+    dosage_type: DosageTypeEnum | None = None
 
     # Строгая валидация
     model_config = ConfigDict(extra="forbid")
