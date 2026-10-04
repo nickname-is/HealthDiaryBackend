@@ -1,4 +1,11 @@
+from enum import Enum as PythonEnum
+
 from pydantic import BaseModel
+
+
+class VerificationTypes(PythonEnum):
+    EMAIL_VERIFICATION = "email_verification"
+    RESET_PASSWORD = "reset_password"
 
 
 class EmailVerificationRequest(BaseModel):
