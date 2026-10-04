@@ -1,11 +1,10 @@
-from datetime import datetime, timedelta, timezone
-
 import secrets
-import jwt
+from datetime import UTC, datetime, timedelta
+
 import bcrypt
+import jwt
 
-from core.config import settings
-
+from app.core.config import settings
 
 ALGORITHM = "HS256"
 
@@ -16,11 +15,11 @@ def create_access_token(
     subject: int,
     expires_delta: timedelta = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
 ) -> str:
-    expire = datetime.now(timezone.utc) + expires_delta
+    expire = datetime.now(UTC) + expires_delta
 
     to_encode = {
         TOKEN_TYPE_FIELD: settings.ACCESS_TOKEN_KEY,
-        "sub": subject,
+        "sub": str(subject),
         "exp": expire,
     }
 
