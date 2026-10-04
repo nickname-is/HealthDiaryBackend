@@ -1,67 +1,37 @@
 import logging
 from typing import Annotated
-from pathlib import Path
-from uuid import uuid4
-import aiofiles
-import os
-import imghdr
 
 from fastapi import (
     APIRouter,
     Depends,
+    File,
     HTTPException,
     Request,
     UploadFile,
-    File,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
-from api.deps import get_current_user, check_user_permission
-from core.models import db_helper
-from core.models.user import User
-from core.schemas.user import (
-    UserRead,
+from app.api.deps import check_user_permission, get_current_user
+from app.core.limiter import limiter
+from app.core.models import db_helper
+from app.core.models.user import User
+from app.core.schemas.user import (
     UserCreate,
+    UserRead,
     UserUpdate,
 )
-
-from slowapi import Limiter
-from slowapi.util import get_remote_address
-
-from crud import users as users_crud
-
+from app.crud.users import users_crud
+from app.services.user_avatar import avatar_service
 
 log = logging.getLogger(__name__)
 router = APIRouter(tags=["Users"])
-limiter = Limiter(key_func=get_remote_address)
-
-MEDIA_ROOT = Path("media")
-USER_MEDIA = MEDIA_ROOT / "users"
-USER_MEDIA.mkdir(parents=True, exist_ok=True)
-
-EXT_MAP = {
-    "jpeg": "jpg",
-    "png": "png",
-    "gif": "gif",
-    "webp": "webp",
-}
-
-MAX_AVATAR_SIZE = 5 * 1024 * 1024  # 5 MB
-
-
-@router.get("", response_model=list[UserRead])
-async def read_users(
-    session: Annotated[
-        AsyncSession,
-        Depends(db_helper.session_getter),
-    ],
-):
-    return await users_crud.get_all_users(session)
 
 
 @router.get("/me", response_model=UserRead)
-async def read_user_me(current_user: Annotated[User, Depends(get_current_user)]):
+async def read_user_me(
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> User:
     return current_user
 
 
@@ -72,8 +42,8 @@ async def read_user(
         AsyncSession,
         Depends(db_helper.session_getter),
     ],
-):
-    user = await users_crud.get_user_by_id(session, user_id)
+) -> User:
+    user = await users_crud.get(session=session, id=user_id)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
@@ -90,12 +60,12 @@ async def create_user(
         AsyncSession,
         Depends(db_helper.session_getter),
     ],
-):
-    user = await users_crud.create_user(session, user_in)
+) -> User:
+    user = await users_crud.create(session=session, obj_in=user_in)
     return user
 
 
-@router.put("/{user_id}", response_model=UserRead)
+@router.patch("/{user_id}", response_model=UserRead)
 async def update_user(
     user_id: int,
     user_in: UserUpdate,
@@ -104,13 +74,13 @@ async def update_user(
         AsyncSession,
         Depends(db_helper.session_getter),
     ],
-):
-    db_user = await users_crud.get_user_by_id(session, user_id)
+) -> User:
+    db_user = await users_crud.get(session=session, id=user_id)
     if not db_user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
-    return await users_crud.update_user(session, db_user, user_in)
+    return await users_crud.update(session=session, db_obj=db_user, obj_in=user_in)
 
 
 @router.post("/{user_id}/avatar", status_code=status.HTTP_201_CREATED)
@@ -122,54 +92,21 @@ async def upload_user_avatar(
         Depends(db_helper.session_getter),
     ],
     file: UploadFile = File(...),
-):
-    if not file.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="Only images allowed")
+) -> dict[str, str]:
+    user = await users_crud.get(session=session, id=user_id)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
 
-    user = await users_crud.get_user_by_id(session, user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    user_dir = USER_MEDIA / str(user_id)
-    user_dir.mkdir(parents=True, exist_ok=True)
-
-    tmp_name = f"{uuid4()}.tmp"
-    tmp_path = user_dir / tmp_name
-
-    size = 0
-    chunk_size = 64 * 1024  # 64 KB
-    async with aiofiles.open(tmp_path, "wb") as f:
-        while content := await file.read(chunk_size):
-            size += len(content)
-            if size > MAX_AVATAR_SIZE:
-                tmp_path.unlink(missing_ok=True)
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"File too large, max {MAX_AVATAR_SIZE} bytes",
-                )
-            await f.write(content)
-
-    # Проверка сигнатуры
-    kind = imghdr.what(tmp_path)
-    if not kind or kind not in EXT_MAP:
-        tmp_path.unlink(missing_ok=True)
-        raise HTTPException(status_code=400, detail="Unsupported image type")
-
-    ext = EXT_MAP[kind]
-    final_name = f"{uuid4()}.{ext}"
-    final_path = user_dir / final_name
-
-    if user.avatar:
-        old_avatar_path = user_dir / user.avatar
-        if old_avatar_path.exists() and old_avatar_path.is_file():
-            old_avatar_path.unlink(missing_ok=True)
-
-    os.rename(tmp_path, final_path)
-
-    user.avatar = final_name
-    session.add(user)
-    await session.commit()
-    await session.refresh(user)
+    try:
+        final_name = await avatar_service.process_and_save_avatar(
+            session=session, user=user, file=file
+        )
+    except ValueError as err:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(err)
+        ) from err
 
     return {
         "message": "Avatar uploaded",
@@ -178,7 +115,7 @@ async def upload_user_avatar(
     }
 
 
-@router.delete("/{user_id}")
+@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user(
     user_id: int,
     _current_user: Annotated[User, Depends(check_user_permission)],
@@ -186,11 +123,14 @@ async def delete_user(
         AsyncSession,
         Depends(db_helper.session_getter),
     ],
-):
-    user = await users_crud.delete_user(session, user_id)
-    if not user:
+) -> None:
+    user = await users_crud.get(session=session, id=user_id)
+
+    if user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
-    return {"detail": "User deleted"}
+    await users_crud.delete(session=session, db_obj=user)
+
+    return None
